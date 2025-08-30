@@ -84,11 +84,11 @@
 				<p>Instructions or form goes here.</p>
 			</div>
 
-			<div class="module module-card d-none" id="current">
+			<div class="module module-card" id="current">
 				<h4>Current Pass</h4>
-				<p>Details about current pass.</p>
+				<a href="{% url 'show_pass' %}" class="btn btn-success">View My E-Pass</a>
 			</div>
-
+			
 			<div class="module module-card d-none" id="concessions">
 				<h4>No. of Concessions Taken</h4>
 				<p>Total concessions taken: {{ concessions_taken }}</p>
@@ -112,5 +112,7 @@
 			document.getElementById(target).classList.remove('d-none');
 		});
 	});
+
+	
 </script>
 {% endblock %}

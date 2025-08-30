@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Pass</title>
+<style>
+/* Wrapper container */
+#epassModule {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Card styles */
+#epassModule .epass-card {
+    width: 600px;
+    background: #fff;
+    border: 2px solid #4CAF50;
+    border-radius: 15px;
+    padding: 35px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Header */
+#epassModule .epass-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#epassModule .railway-title {
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+#epassModule .epass-header img {
+    display: block;
+    margin: 0 auto 15px auto;
+    max-width: 150px;
+    height: auto;
+}
+
+#epassModule .epass-header h1 {
+    color: #4CAF50;
+    margin: 0 0 5px 0;
+    font-size: 1.8em;
+}
+
+#epassModule .epass-header p {
+    font-size: 1em;
+    color: #555;
+}
+
+/* Body */
+#epassModule .epass-body p {
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+
+#epassModule .epass-body strong {
+    width: 140px;
+    display: inline-block;
+}
+
+#epassModule .status { font-weight: bold; }
+#epassModule .status.approved { color: green; }
+
+/* Footer */
+#epassModule .epass-footer {
+    text-align: center;
+    margin-top: 25px;
+}
+
+#epassModule .epass-footer button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+#epassModule .epass-footer button:hover {
+    background-color: #45a049;
+}
+
+/* QR code */
+#epassModule .qr-placeholder {
+    width: 120px;
+    height: 120px;
+    margin: 20px auto;
+}
+</style>
+</head>
+<body>
+
+<!-- ✅ Correct wrapper -->
+<div id="epassModule">
+    <div class="epass-card">
+        <div class="epass-header">
+            <div class="railway-title">Indian Railways</div>
+            <img src="/static/logo.jpg" id="logo" alt="Railway Logo">
+            <h1>E-PASS</h1>
+            <p>Issued: {{ epass.created_at|date:"Y-m-d" }}</p>
+        </div>
+        <div class="epass-body">
+            <p><strong>Name:</strong> {{ epass.s_name }}</p>
+            <p><strong>Age / Gender:</strong> {{ epass.age }} / {{ epass.gender }}</p>
+            <p><strong>Department:</strong> {{ epass.department }}</p>
+            <p><strong>Source → Destination:</strong> {{ epass.destination }}</p>
+            <p><strong>Status:</strong> <span class="status approved"></span></p>
+            <p><strong>Validation Date:</strong> {{ epass.updated_at|date:"Y-m-d" }}</p>
+            <p><strong>Phone:</strong> {{ epass.phone_no }}</p>
+            <p><strong>Aadhar:</strong> {{ epass.adhar_no }}</p>
+            <div id="qrcode" class="qr-placeholder"></div>
+        </div>
+        <div class="epass-footer">
+            <button id="downloadPdfBtn">Download PDF</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+const { jsPDF } = window.jspdf;
+
+// Generate QR code in UI
+new QRCode(document.getElementById("qrcode"), {
+    text: "Epass",
+    width: 120,
+    height: 120
+});
+
+// Get QR code data URL
+function getQrDataURL() {
+    const qrCanvas = document.querySelector("#qrcode canvas");
+    if(qrCanvas) return qrCanvas.toDataURL("image/png");
+    return null;
+}
+
+// Download PDF
+document.getElementById("downloadPdfBtn").addEventListener("click", () => {
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFontSize(24);
+    doc.text("Indian Railways", 105, 20, null, null, "center");
+    doc.setFontSize(20);
+    doc.text("E-PASS", 105, 30, null, null, "center");
+    doc.setFontSize(14);
+    doc.text("Issued: 2025-08-30", 105, 40, null, null, "center");
+
+    // Body
+    let startY = 50;
+   const info = [
+    "Name: {{ epass.s_name }}",
+    "Age / Gender: {{ epass.age }} / {{ epass.gender }}",
+    "Department: {{ epass.department }}",
+    "Aadhar: {{ epass.adhar_no }}",
+    "Phone: {{ epass.phone_no }}",
+    "Source → Destination:  → {{ epass.destination }}",
+    "Status: Approved",
+    "Validation Date: {{ epass.updated_at|date:'Y-m-d' }}",
+    "Issued: {{ epass.created_at|date:'Y-m-d' }}",
+    "Verified by: Admin Name"
+];
+
+    info.forEach((line, index) => {
+        doc.setFontSize(14);
+        doc.text(line, 20, startY + index * 10);
+    });
+
+    // QR Code
+    const qrDataUrl = getQrDataURL();
+    if(qrDataUrl){
+        doc.addImage(qrDataUrl, 'PNG', 230, 70, 50, 50);
+    }
+
+    doc.save("e-pass.pdf");
+});
+</script>
+
+</body>
+</html>

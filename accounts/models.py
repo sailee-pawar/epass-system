@@ -16,8 +16,11 @@ class ConcessionData(models.Model):
 	phone_no = models.CharField(max_length=50,blank=True, null=True)
 	destination = models.CharField(max_length=250, blank=True, null=True)
 	duration = models.SmallIntegerField(blank=True, null=True)
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
+	is_active = models.SmallIntegerField(blank=True, null=True)
+	status = models.CharField(max_length=50, blank=True, null=True)
+	email_id = models.CharField(max_length=150, blank=True, null=True)
+	# created_at = models.DateTimeField(auto_now_add=True)
+	# updated_at = models.DateTimeField(auto_now=True)
 
 	class Meta:
 		db_table = 'concession_data'  # Use your existing table

@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -96,4 +96,21 @@ def apply_concession(request):
         'concessions_taken': 0
     }
 
-    return render(request, 'dashboard.html', context)
+def epass_view(request, id):
+    # Get data from DB
+    epass = get_object_or_404(ConcessionData, id=id)
+
+    # Pass it to template
+    return render(request, 'epass.html', {'epass': epass})
+
+def epass_view(request, id):
+    epass = ConcessionData.objects.get(id=id)
+    return render(request, "epass.html", {"epass": epass})
+
+def getActivePass(request):
+    # Fetch the user’s active pass (if exists)
+    user_pass = ConcessionData.objects.filter(user=request.user, is_active=True).first()
+
+    return render(request, "dashboard.html", {
+        "user_epass": user_pass
+    })
