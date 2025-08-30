@@ -27,4 +27,7 @@ COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB
 ;
 
+ALTER TABLE `concession_data`
+	ADD COLUMN `is_active` INT(3) NULL DEFAULT NULL AFTER `duration`,
+	ADD COLUMN `status` VARCHAR(50) NULL DEFAULT NULL AFTER `is_active`;
 
