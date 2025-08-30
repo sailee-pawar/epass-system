@@ -9,8 +9,11 @@
 		</div>
 
 		<div class="mb-3">
-			<label for="id_b_date" class="form-label">Birth Date</label>
-			<input type="date" name="b_date" id="id_b_date" class="form-control">
+			<label for="id_b_date" class="form-label fw-bold">Birth Date</label>
+			<div class="input-group">
+				<span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+				<input type="date" name="b_date" id="id_b_date" class="form-control" placeholder="Select your birth date">
+			</div>
 		</div>
 
 		<div class="mb-3">
@@ -45,12 +48,25 @@
 
 		<div class="mb-3">
 			<label for="id_phone_no" class="form-label">Phone Number</label>
-			<input type="tel" name="phone_no" id="id_phone_no" class="form-control">
+			<input type="tel" 
+				name="phone_no" 
+				id="id_phone_no" 
+				class="form-control" 
+				placeholder="Enter 10-digit phone number"
+				pattern="\d{10}" 
+				maxlength="10" 
+				required>
+			<div class="form-text">Enter 10 digits only.</div>
 		</div>
 
 		<div class="mb-3">
 			<label for="id_destination" class="form-label">Destination</label>
 			<input type="text" name="destination" id="id_destination" class="form-control">
+		</div>
+
+		<div class="mb-3">
+			<label for="id_duration" class="form-label">Pass Duration (in months)</label>
+			<input type="number" name="duration" id="id_duration" class="form-control" min="1" max="3" placeholder="1 to 3 months" required>
 		</div>
 
 		<button type="submit" class="btn btn-primary w-100">Submit</button>

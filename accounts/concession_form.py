@@ -9,5 +9,5 @@ class ConcessionDataForm(forms.ModelForm):
         model = ConcessionData
         fields = [
             's_name', 'b_date', 'age', 'gender', 'department', 
-            'address', 'adhar_no', 'phone_no', 'destination'
+            'address', 'adhar_no', 'phone_no', 'destination', 'duration'
         ]

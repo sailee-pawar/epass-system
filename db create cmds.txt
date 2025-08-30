@@ -16,8 +16,9 @@ CREATE TABLE IF NOT EXISTS `concession_data` (
 	`department` VARCHAR(200) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`address` LONGTEXT NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`adhar_no` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
-	`phone_no` INT(12) NULL DEFAULT NULL,
+	`phone_no` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`destination` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`duration` TINYINT(3) NULL DEFAULT NULL,
 	`created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
 	`updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`) USING BTREE
@@ -25,4 +26,5 @@ CREATE TABLE IF NOT EXISTS `concession_data` (
 COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB
 ;
+
 
