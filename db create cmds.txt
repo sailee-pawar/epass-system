@@ -1,0 +1,28 @@
+DROP DATABASE IF EXISTS epass_db;
+
+CREATE DATABASE epass_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'epassuser'@'localhost' IDENTIFIED BY 'hC8nIj7GGMKk504i98vQ';
+
+GRANT ALL PRIVILEGES ON epass_db.* TO 'epassuser'@'localhost';
+FLUSH PRIVILEGES;
+
+CREATE TABLE IF NOT EXISTS `concession_data` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`s_name` VARCHAR(250) NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
+	`b_date` DATETIME NULL DEFAULT NULL,
+	`age` INT(20) NULL DEFAULT NULL,
+	`gender` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`department` VARCHAR(200) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`address` LONGTEXT NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`adhar_no` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`phone_no` INT(12) NULL DEFAULT NULL,
+	`destination` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`) USING BTREE
+)
+COLLATE='utf8mb4_unicode_ci'
+ENGINE=InnoDB
+;
+
