@@ -83,8 +83,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'epass_db',        # database you created
         'USER': 'epassuser',       # MySQL user
-        'PASSWORD': 'password123', # MySQL password
-        'HOST': '127.0.0.1',       # local MySQL server
+        'PASSWORD': 'hC8nIj7GGMKk504i98vQ', # MySQL password
+        'HOST': 'localhost',       # local MySQL server
         'PORT': '3306',            # default MySQL port
     }
 }
