@@ -1,0 +1,95 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+  }
+  .sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #f8f9fa;
+    padding: 20px;
+  }
+  .main-content {
+    margin-left: 250px;
+    padding: 40px;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .nav-link.active {
+    font-weight: bold;
+    color: #0d6efd;
+  }
+</style>
+
+<div class="sidebar">
+  <h4>Modules</h4>
+  <ul class="nav flex-column" id="moduleTabs">
+    <li class="nav-item mb-2">
+      <a class="nav-link active" href="#" data-target="concession">Apply for Concession</a>
+    </li>
+    <li class="nav-item mb-2">
+      <a class="nav-link" href="#" data-target="pass">Apply for Pass</a>
+    </li>
+    <li class="nav-item mb-2">
+      <a class="nav-link" href="#" data-target="current">Current Pass</a>
+    </li>
+    <li class="nav-item mb-2">
+      <a class="nav-link" href="#" data-target="concessions">No. of Concessions Taken</a>
+    </li>
+  </ul>
+</div>
+
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Welcome, {{ user.username }}!</h2>
+    <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Logout</a>
+  </div>
+
+  <div id="moduleContent">
+    <div class="module" id="concession">
+      <h4>Apply for Concession</h4>
+      <p>Instructions or form goes here.</p>
+    </div>
+
+    <div class="module d-none" id="pass">
+      <h4>Apply for Pass</h4>
+      <p>Instructions or form goes here.</p>
+    </div>
+
+    <div class="module d-none" id="current">
+      <h4>Current Pass</h4>
+      <p>Details about current pass.</p>
+    </div>
+
+    <div class="module d-none" id="concessions">
+      <h4>No. of Concessions Taken</h4>
+      <p>Total concessions taken: {{ concessions_taken }}</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const links = document.querySelectorAll('#moduleTabs .nav-link');
+  const modules = document.querySelectorAll('#moduleContent .module');
+
+  links.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      links.forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+
+      modules.forEach(m => m.classList.add('d-none'));
+      const target = this.dataset.target;
+      document.getElementById(target).classList.remove('d-none');
+    });
+  });
+</script>
+{% endblock %}
