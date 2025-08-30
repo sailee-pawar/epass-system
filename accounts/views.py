@@ -5,10 +5,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
-
-
-
-
+from accounts.models import ConcessionData
+from .concession_form import ConcessionDataForm
+import json
 
 def signup_view(request):
     if request.method == "POST":
@@ -65,3 +64,36 @@ def dashboard_view(request):
 def logout_view(request):
     logout(request)
     return redirect(settings.LOGOUT_REDIRECT_URL)
+
+
+def apply_concession(request):
+    """
+    View to display and handle the Concession form.
+    Saves submitted data to the existing concession_data table.
+    """
+    print("POST data:", request.POST)
+    
+    if request.method == 'POST':
+        form = ConcessionDataForm(request.POST)
+        
+        if form.is_valid():
+            obj = form.save(commit=False)
+            # Optionally associate with logged-in user
+            # obj.user_id = request.user.id if hasattr(request.user, 'id') else None
+            obj.save()
+            return redirect('dashboard')  # reload page after submission
+        else:
+            print("Form errors:", form.errors)
+    else:
+        print("in here")
+        form = ConcessionDataForm()
+
+    # Count total concessions submitted by the user (optional)
+    # concessions_taken = ConcessionData.objects.filter(user_id=request.user.id).count() if hasattr(request.user, 'id') else 0
+
+    context = {
+        'form': form,
+        'concessions_taken': 0
+    }
+
+    return render(request, 'dashboard.html', context)

@@ -1,0 +1,58 @@
+<!-- templates/concession_form.html -->
+<div class="card mt-3 p-3 shadow-sm mx-auto" style="max-width: 600px;">
+	<form method="post" action="{% url 'apply_concession' %}">
+		{% csrf_token %}
+
+		<div class="mb-3">
+			<label for="id_s_name" class="form-label">Student Name</label>
+			<input type="text" name="s_name" id="id_s_name" class="form-control" required>
+		</div>
+
+		<div class="mb-3">
+			<label for="id_b_date" class="form-label">Birth Date</label>
+			<input type="date" name="b_date" id="id_b_date" class="form-control">
+		</div>
+
+		<div class="mb-3">
+			<label for="id_age" class="form-label">Age</label>
+			<input type="number" name="age" id="id_age" class="form-control">
+		</div>
+
+		<div class="mb-3">
+			<label for="id_gender" class="form-label">Gender</label>
+			<select name="gender" id="id_gender" class="form-select">
+				<option value="">Select</option>
+				<option value="Male">Male</option>
+				<option value="Female">Female</option>
+				<option value="Other">Other</option>
+			</select>
+		</div>
+
+		<div class="mb-3">
+			<label for="id_department" class="form-label">Department</label>
+			<input type="text" name="department" id="id_department" class="form-control">
+		</div>
+
+		<div class="mb-3">
+			<label for="id_address" class="form-label">Address</label>
+			<textarea name="address" id="id_address" class="form-control" rows="3"></textarea>
+		</div>
+
+		<div class="mb-3">
+			<label for="id_adhar_no" class="form-label">Aadhar Number</label>
+			<input type="text" name="adhar_no" id="id_adhar_no" class="form-control">
+		</div>
+
+		<div class="mb-3">
+			<label for="id_phone_no" class="form-label">Phone Number</label>
+			<input type="tel" name="phone_no" id="id_phone_no" class="form-control">
+		</div>
+
+		<div class="mb-3">
+			<label for="id_destination" class="form-label">Destination</label>
+			<input type="text" name="destination" id="id_destination" class="form-control">
+		</div>
+
+		<button type="submit" class="btn btn-primary w-100">Submit</button>
+	</form>
+</div>
