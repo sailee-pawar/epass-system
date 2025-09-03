@@ -1,37 +1,47 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib import messages
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.conf import settings
 
 from accounts.models import ConcessionData
 from .concession_form import ConcessionDataForm
 import json
 
+User = get_user_model()
+
 def signup_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
-        password = request.POST.get("password1")   # 🔑 match your HTML field name
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
+        role = request.POST.get("role")   # 👈 new field from dropdown
 
-        # Check empty fields
-        if not username or not password:
-            messages.error(request, "Both fields are required.")
+        # Validation
+        if not username or not password1 or not password2 or not role:
+            messages.error(request, "All fields are required.")
             return redirect("signup")
 
-        # Check if username already exists
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+            return redirect("signup")
+
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
             return redirect("signup")
 
-        # Create the user
+        # Create user
         user = User.objects.create_user(
             username=username,
-            password=password
+            password=password1,
+            role=role   # 👈 save selected role
         )
 
-        # Auto-login the user
+        # Auto-login user
         login(request, user)
+        messages.success(request, "Account created successfully!")
 
         return redirect("dashboard")
 
@@ -57,7 +67,18 @@ def login_view(request):
 
 @login_required(login_url=settings.LOGIN_URL)
 def dashboard_view(request):
-    return render(request, "accounts/dashboard.html")
+    # check if an active one exists
+    active_pass_exists = ConcessionData.objects.filter(
+        user_id=request.user.id, is_active=True
+    ).exists()
+
+    return render(
+        request,
+        "accounts/dashboard.html",
+        {
+            "active_pass_exists": active_pass_exists,  # ✅ now available in templates
+        },
+    )
 
 
 
@@ -70,31 +91,44 @@ def apply_concession(request):
     """
     View to display and handle the Concession form.
     Saves submitted data to the existing concession_data table.
+    Prevents duplicate active passes for the same user.
     """
-    print("POST data:", request.POST)
-    
     if request.method == 'POST':
         form = ConcessionDataForm(request.POST)
         
         if form.is_valid():
+            # ✅ Check if user already has an active pass
+            already_active = ConcessionData.objects.filter(
+                user_id=request.user.id,
+                is_active=1
+            ).exists()
+
+            if already_active:
+                # Set the session flag and redirect
+                request.session['active_pass_exists'] = True
+                messages.error(request, "You already have an active pass. You cannot apply again until it expires.")
+                
+                return redirect('dashboard')
+
+            # ✅ Otherwise, save concession
             obj = form.save(commit=False)
-            # Optionally associate with logged-in user
-            # obj.user_id = request.user.id if hasattr(request.user, 'id') else None
+            obj.user_id = request.user.id  # set user_id
+            obj.is_active = 1              # mark new pass as active
+            obj.status = "Pending"         # default status
             obj.save()
-            return redirect('dashboard')  # reload page after submission
+
+            messages.success(request, "Your concession application has been submitted successfully.")
+            return redirect(request,'dashboard')
         else:
             print("Form errors:", form.errors)
     else:
-        print("in here")
         form = ConcessionDataForm()
-
-    # Count total concessions submitted by the user (optional)
-    # concessions_taken = ConcessionData.objects.filter(user_id=request.user.id).count() if hasattr(request.user, 'id') else 0
 
     context = {
         'form': form,
         'concessions_taken': 0
     }
+    return render(request, "concession_form.html", context)
 
 def epass_view(request, id):
     # Get data from DB
@@ -108,8 +142,21 @@ def epass_view(request, id):
     return render(request, "epass.html", {"epass": epass})
 
 def getActivePass(request):
+
+    User = get_user_model()
+    u = User.objects.get(id=request.user.id)
+    
+
     # Fetch the user’s active pass (if exists)
-    user_pass = ConcessionData.objects.filter(user=request.user, is_active=True).first()
+    user_pass = ConcessionData.objects.filter(user_id=request.user.id, is_active=True).first()
+    print("sp--")
+    print("Active Pass:", user_pass)          # prints <ConcessionData: sailee baliram pawar>
+    print("Name:", user_pass.s_name if user_pass else None)
+    print("Department:", user_pass.department if user_pass else None)
+
+
+    # epass = ConcessionData.objects.get(id=id)
+    return render(request, "epass.html", {"epass": user_pass})
 
     return render(request, "dashboard.html", {
         "user_epass": user_pass

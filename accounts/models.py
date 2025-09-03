@@ -1,11 +1,11 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-
 # Create your models here.
 
-# models.py
-from django.db import models
 
 class ConcessionData(models.Model):
+	user_id = models.IntegerField(blank=True, null=True)  # just maps to the int column
+	
 	s_name = models.CharField(max_length=250, blank=True, default='')
 	b_date = models.DateTimeField(blank=True, null=True)
 	age = models.IntegerField(blank=True, null=True)
@@ -19,12 +19,17 @@ class ConcessionData(models.Model):
 	is_active = models.SmallIntegerField(blank=True, null=True)
 	status = models.CharField(max_length=50, blank=True, null=True)
 	email_id = models.CharField(max_length=150, blank=True, null=True)
-	# created_at = models.DateTimeField(auto_now_add=True)
-	# updated_at = models.DateTimeField(auto_now=True)
-
 	class Meta:
 		db_table = 'concession_data'  # Use your existing table
 		managed = False  # Django will not create/migrate this table
 
 	def __str__(self):
 		return self.s_name
+
+class User(AbstractUser):
+    ROLE_CHOICES = (
+        ('student', 'Student'),
+        ('transporter', 'Transporter'),
+        ('admin', 'College Admin'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')

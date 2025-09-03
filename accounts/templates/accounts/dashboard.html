@@ -76,7 +76,13 @@
 			<div class="module module-card" id="concession">
 				<h4 class="text-center">Apply for Concession</h4>
 				<!-- Include the separate form template -->
-    			{% include 'concession_form.html' %}
+    			{% if active_pass_exists %}
+				<div class="alert alert-warning text-center">
+					🚨 You already have an active pass. You cannot apply for another until it expires.
+				</div>
+				{% else %}
+				{% include 'concession_form.html' %}
+				{% endif %}
 			</div>
 
 			<div class="module module-card d-none" id="pass">
