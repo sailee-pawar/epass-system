@@ -87,7 +87,17 @@
 
 			<div class="module module-card d-none" id="pass">
 				<h4>Apply for Pass</h4>
-				<p>Instructions or form goes here.</p>
+				<div class="mb-3">
+					<strong>Instructions for Applying for a Railway Pass:</strong>
+					<ul>
+						<li>Ensure you have an active concession approved before applying for a railway pass.</li>
+						<li>Fill in all required details accurately in the pass application form.</li>
+						<li>Upload a recent passport-size photograph if required.</li>
+						<li>Verify your personal and travel details before submitting.</li>
+						<li>Once submitted, your application will be reviewed by the transport authority.</li>
+						<li>You will receive a notification and can download your e-pass once approved.</li>
+					</ul>
+				</div>
 			</div>
 
 			<div class="module module-card" id="current">
@@ -96,8 +106,49 @@
 			</div>
 			
 			<div class="module module-card d-none" id="concessions">
-				<h4>No. of Concessions Taken</h4>
-				<p>Total concessions taken: {{ concessions_taken }}</p>
+				   <h4>No. of Concessions Taken</h4>
+				   <p>Total concessions taken: {{ concessions_taken }}</p>
+
+				   <!-- Rectangular card for concession details -->
+				   {% if concessions_list %}
+				   <div class="card mt-4 p-3 shadow-sm" style="border-radius: 12px;">
+					   <h5 class="mb-3">Your Concession Application Details</h5>
+					   {% for concession in concessions_list %}
+						   <div class="mb-3" style="border-bottom: 1px solid #eee; padding-bottom: 10px;">
+							   <strong>Name:</strong> {{ concession.s_name }}<br>
+							   <strong>Department:</strong> {{ concession.department }}<br>
+							   <strong>Destination:</strong> {{ concession.destination }}<br>
+							   <strong>Duration:</strong> {{ concession.duration }} month(s)<br>
+							   <strong>Status:</strong> {{ concession.status }}<br>
+							   <strong>Applied On:</strong> {{ concession.b_date }}<br>
+						   </div>
+					   {% endfor %}
+				   </div>
+				   {% else %}
+				   <div class="mt-4 card p-3 shadow-sm" style="border-radius: 12px;">No concession applications found.</div>
+				   {% endif %}
+			   </div>
+
+			   <div class="module module-card d-none" id="concession-list">
+				   <h4>Your Concession Applications</h4>
+				   {% if concessions_list %}
+				   <div class="row">
+					   {% for concession in concessions_list %}
+						   <div class="col-md-6 mb-3">
+							   <div class="card p-2 shadow-sm">
+								   <strong>Name:</strong> {{ concession.s_name }}<br>
+								   <strong>Department:</strong> {{ concession.department }}<br>
+								   <strong>Destination:</strong> {{ concession.destination }}<br>
+								   <strong>Duration:</strong> {{ concession.duration }} month(s)<br>
+								   <strong>Status:</strong> {{ concession.status }}<br>
+								   <strong>Applied On:</strong> {{ concession.b_date }}<br>
+							   </div>
+						   </div>
+					   {% endfor %}
+				   </div>
+				   {% else %}
+				   <div class="mt-3">No concession applications found.</div>
+				   {% endif %}
 			</div>
 		</div>
 	</div>
@@ -115,7 +166,10 @@
 
 			modules.forEach(m => m.classList.add('d-none'));
 			const target = this.dataset.target;
-			document.getElementById(target).classList.remove('d-none');
+			const targetDiv = document.getElementById(target);
+			if (targetDiv) {
+				targetDiv.classList.remove('d-none');
+			}
 		});
 	});
 

@@ -72,11 +72,21 @@ def dashboard_view(request):
         user_id=request.user.id, is_active=True
     ).exists()
 
+    # Fetch total concessions taken by the logged-in user
+    concessions_count = 0
+    concessions_list = []
+    if request.user.is_authenticated:
+        user_concessions = ConcessionData.objects.filter(user_id=request.user.id)
+        concessions_count = user_concessions.count()
+        concessions_list = user_concessions
+
     return render(
         request,
         "accounts/dashboard.html",
         {
-            "active_pass_exists": active_pass_exists,  # ✅ now available in templates
+            "active_pass_exists": active_pass_exists,
+            "concessions_taken": concessions_count,
+            "concessions_list": concessions_list,
         },
     )
 
@@ -117,16 +127,47 @@ def apply_concession(request):
             obj.status = "Pending"         # default status
             obj.save()
 
-            messages.success(request, "Your concession application has been submitted successfully.")
-            return redirect(request,'dashboard')
+            # Send email to entered email address
+            from django.core.mail import send_mail
+            from django.conf import settings
+
+            subject = "Concession Application Submitted"
+            message = (
+                f"Dear {obj.s_name},\n\n"
+                f"Your concession application has been submitted successfully. Here are your details:\n\n"
+                f"Name: {obj.s_name}\n"
+                f"Birth Date: {obj.b_date}\n"
+                f"Age: {obj.age}\n"
+                f"Gender: {obj.gender}\n"
+                f"Department: {obj.department}\n"
+                f"Address: {obj.address}\n"
+                f"Aadhar Number: {obj.adhar_no}\n"
+                f"Phone Number: {obj.phone_no}\n"
+                f"Email: {obj.email_id}\n"
+                f"Destination: {obj.destination}\n"
+                f"Duration: {obj.duration} month(s)\n"
+                f"Status: {obj.status}\n\n"
+                "Thank you for applying."
+            )
+            recipient_list = [obj.email_id]
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list, fail_silently=True)
+
+            messages.success(request, "Your concession application has been submitted successfully and a confirmation email has been sent.")
+            return redirect('dashboard')
         else:
             print("Form errors:", form.errors)
     else:
         form = ConcessionDataForm()
 
+    # Fetch total concessions taken by the logged-in user
+    concessions_count = 0
+    if request.user.is_authenticated:
+        from .models import ConcessionData
+        concessions_count = ConcessionData.objects.filter(user_id=request.user.id).count()
+
     context = {
         'form': form,
-        'concessions_taken': 0
+        'concessions_taken': concessions_count
     }
     return render(request, "concession_form.html", context)
 
