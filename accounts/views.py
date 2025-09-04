@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model, login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 from accounts.models import ConcessionData
 from .concession_form import ConcessionDataForm
@@ -68,9 +70,14 @@ def login_view(request):
 @login_required(login_url=settings.LOGIN_URL)
 def dashboard_view(request):
     # check if an active one exists
-    active_pass_exists = ConcessionData.objects.filter(
-        user_id=request.user.id, is_active=True
-    ).exists()
+
+    if request.user.role == "admin":
+        pending_concessions = ConcessionData.objects.filter(is_active=2)  # status=2 => Pending
+    else:
+        active_pass_exists = ConcessionData.objects.filter(
+            user_id=request.user.id, is_active=True
+        ).exists()
+        pending_concessions = None
 
     # Fetch total concessions taken by the logged-in user
     concessions_count = 0
@@ -80,15 +87,24 @@ def dashboard_view(request):
         concessions_count = user_concessions.count()
         concessions_list = user_concessions
 
-    return render(
-        request,
-        "accounts/dashboard.html",
-        {
-            "active_pass_exists": active_pass_exists,
-            "concessions_taken": concessions_count,
-            "concessions_list": concessions_list,
-        },
-    )
+    if request.user.role == "admin":
+        return render(
+            request,
+            "accounts/dashboard.html",
+            {
+                "pending_concessions": pending_concessions
+            },
+        )
+    else:
+        return render(
+            request,
+            "accounts/dashboard.html",
+            {
+                "active_pass_exists": active_pass_exists,
+                "concessions_taken": concessions_count,
+                "concessions_list": concessions_list,
+            },
+        )
 
 
 
@@ -114,43 +130,29 @@ def apply_concession(request):
             ).exists()
 
             if already_active:
-                # Set the session flag and redirect
                 request.session['active_pass_exists'] = True
                 messages.error(request, "You already have an active pass. You cannot apply again until it expires.")
-                
                 return redirect('dashboard')
 
-            # ✅ Otherwise, save concession
             obj = form.save(commit=False)
-            obj.user_id = request.user.id  # set user_id
-            obj.is_active = 1              # mark new pass as active
-            obj.status = "Pending"         # default status
+            obj.user_id = request.user.id
+            obj.is_active = 2
+            obj.status = "Pending"
             obj.save()
 
-            # Send email to entered email address
+            # ✅ Send confirmation email
             from django.core.mail import send_mail
             from django.conf import settings
 
             subject = "Concession Application Submitted"
             message = (
                 f"Dear {obj.s_name},\n\n"
-                f"Your concession application has been submitted successfully. Here are your details:\n\n"
-                f"Name: {obj.s_name}\n"
-                f"Birth Date: {obj.b_date}\n"
-                f"Age: {obj.age}\n"
-                f"Gender: {obj.gender}\n"
-                f"Department: {obj.department}\n"
-                f"Address: {obj.address}\n"
-                f"Aadhar Number: {obj.adhar_no}\n"
-                f"Phone Number: {obj.phone_no}\n"
-                f"Email: {obj.email_id}\n"
-                f"Destination: {obj.destination}\n"
+                f"Your concession application has been submitted successfully.\n"
                 f"Duration: {obj.duration} month(s)\n"
                 f"Status: {obj.status}\n\n"
                 "Thank you for applying."
             )
-            recipient_list = [obj.email_id]
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list, fail_silently=True)
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [obj.email_id], fail_silently=True)
 
             messages.success(request, "Your concession application has been submitted successfully and a confirmation email has been sent.")
             return redirect('dashboard')
@@ -159,10 +161,9 @@ def apply_concession(request):
     else:
         form = ConcessionDataForm()
 
-    # Fetch total concessions taken by the logged-in user
+    # ✅ Fetch concessions taken
     concessions_count = 0
     if request.user.is_authenticated:
-        from .models import ConcessionData
         concessions_count = ConcessionData.objects.filter(user_id=request.user.id).count()
 
     context = {
@@ -171,12 +172,12 @@ def apply_concession(request):
     }
     return render(request, "concession_form.html", context)
 
-def epass_view(request, id):
+def concession_form(request):
     # Get data from DB
-    epass = get_object_or_404(ConcessionData, id=id)
+    # epass = get_object_or_404(ConcessionData, id=id)
 
     # Pass it to template
-    return render(request, 'epass.html', {'epass': epass})
+    return render(request, 'concession_form.html')
 
 def epass_view(request, id):
     epass = ConcessionData.objects.get(id=id)
@@ -189,8 +190,8 @@ def getActivePass(request):
     
 
     # Fetch the user’s active pass (if exists)
-    user_pass = ConcessionData.objects.filter(user_id=request.user.id, is_active=True).first()
-    print("sp--")
+    user_pass = ConcessionData.objects.filter(user_id=request.user.id, is_active=1).first()
+    
     print("Active Pass:", user_pass)          # prints <ConcessionData: sailee baliram pawar>
     print("Name:", user_pass.s_name if user_pass else None)
     print("Department:", user_pass.department if user_pass else None)
@@ -202,3 +203,25 @@ def getActivePass(request):
     return render(request, "dashboard.html", {
         "user_epass": user_pass
     })
+
+
+#### concession approve/reject part ###
+@login_required
+def approve_concession(request, pk):
+    concession = get_object_or_404(ConcessionData, id=pk, is_active=2)
+    concession.is_active = 1  # Approved
+    concession.status = "Approved"
+    concession.save()
+    messages.success(request, "Concession approved successfully ✅")
+    return redirect("dashboard")
+    # return HttpResponseRedirect(reverse("dashboard") + "?tab=verify")
+
+
+@login_required
+def reject_concession(request, pk):
+    concession = get_object_or_404(ConcessionData, id=pk, is_active=2)
+    concession.is_active = 0  # Rejected
+    concession.status = "Rejected"
+    concession.save()
+    messages.error(request, "Concession rejected ❌")
+    return redirect("dashboard")
