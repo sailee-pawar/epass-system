@@ -32,6 +32,4 @@ COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB
 ;
 
-ALTER TABLE `accounts_user`
-	ADD COLUMN `user_id` INT(20) NULL AUTO_INCREMENT AFTER `id`;
 

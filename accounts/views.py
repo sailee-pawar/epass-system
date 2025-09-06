@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from accounts.models import ConcessionData
 from .concession_form import ConcessionDataForm
-import json
+import json, re
 
 User = get_user_model()
 
@@ -25,7 +25,28 @@ def signup_view(request):
         if not username or not password1 or not password2 or not role:
             messages.error(request, "All fields are required.")
             return redirect("signup")
+        
+        # ✅ Password Strength Validation
+        if len(password1) < 10:
+            messages.error(request, "Password must be at least 10 characters long.")
+            return redirect("signup")
 
+        if not re.search(r"[A-Z]", password1):
+            messages.error(request, "Password must contain at least one uppercase letter.")
+            return redirect("signup")
+
+        if not re.search(r"[a-z]", password1):
+            messages.error(request, "Password must contain at least one lowercase letter.")
+            return redirect("signup")
+
+        if not re.search(r"[0-9]", password1):
+            messages.error(request, "Password must contain at least one digit.")
+            return redirect("signup")
+
+        if not re.search(r"[@$!%*?&#]", password1):
+            messages.error(request, "Password must contain at least one special character (@, $, !, %, *, ?, &, #).")
+            return redirect("signup")
+        
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
             return redirect("signup")
