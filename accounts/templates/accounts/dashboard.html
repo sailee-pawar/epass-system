@@ -18,6 +18,15 @@
 		background-color: #343a40;
 		color: #fff;
 		padding: 20px;
+		position: fixed;
+		top: 0;
+		left: -260px; /* hidden by default */
+		height: 100%;
+		transition: left 0.3s ease;
+		z-index: 1000;
+	}
+	.sidebar.show {
+		left: 0; /* slide in */
 	}
 	.sidebar h4 {
 		color: #f8f9fa;
@@ -40,7 +49,27 @@
 		padding: 30px;
 		background-color: #f1f3f6;
 		overflow-y: auto;
+		margin-left: 0;
+		transition: margin-left 0.3s ease;
 	}
+	.main-content.shift {
+		margin-left: 250px; /* shift when sidebar opens */
+	}
+
+	/* Toggle button */
+	.toggle-sidebar-btn {
+		position: fixed;
+		top: 20px;
+		left: 140px;
+		z-index: 1100;
+		background: #0984e3;
+		color: #fff;
+		border: none;
+		padding: 8px 12px;
+		border-radius: 5px;
+		cursor: pointer;
+	}
+
 	.module-card {
 		background: #fff;
 		border-radius: 10px;
@@ -55,12 +84,10 @@
 	<div class="sidebar">
 		<h4>Dashboard</h4>
 		<ul class="nav flex-column" id="moduleTabs">
-
 			<li><a class="nav-link active" href="#" data-target="home">Home</a></li>
 
 			{% if user.role == "student" %}
 				<li><a class="nav-link" href="#" data-target="concession">Apply for Concession</a></li>
-				<li><a class="nav-link" href="#" data-target="pass">Apply for Pass</a></li>
 				<li><a class="nav-link" href="#" data-target="current">Current Pass</a></li>
 				<li><a class="nav-link" href="#" data-target="concessions">No. of Concessions Taken</a></li>
 			{% elif user.role == "admin" %}
@@ -75,15 +102,56 @@
 
 	<!-- Main content -->
 	<div class="main-content">
+		<!-- Sidebar Toggle Button -->
+		<button class="toggle-sidebar-btn" id="sidebarToggle">☰ Menu</button>
+
 		<div class="d-flex justify-content-between align-items-center mb-4">
-			<h2>Welcome, {{ user.username }} 👋</h2>
 			<a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Logout</a>
 		</div>
 
 		<div id="moduleContent">
 			<!-- Home -->
-			<div class="module module-card" id="home">
+			<div class="module module-card" id="home" style="position: relative; padding:20px; min-height:300px;">
+				<h2>Welcome, {{ user.username }} 👋</h2>
 				<p class="text-muted">Use the sidebar to access your modules.</p>
+
+				<!-- AI Assistant Toggle Button -->
+				<button id="ai-toggle" style="
+					position: absolute;
+					top: 77px;
+					right: 10px;
+					background:#0984e3;
+					color:white;
+					border:none;
+					border-radius:50%;
+					width:55px;
+					height:56px;
+					font-size:31px;
+					cursor:pointer;
+				">💬</button>
+
+				<!-- AI Chat Box -->
+				<div id="ai-chat" style="
+					display: none;
+					position: absolute;
+					top: 50px;
+					right: 10px;
+					width:250px;
+					max-height:200px;
+					background:white;
+					border-radius:10px;
+					box-shadow:0 4px 15px rgba(0,0,0,0.2);
+					flex-direction: column;
+					overflow: hidden;
+					z-index: 10;
+				">
+					<div style="background:#0984e3; color:white; padding:8px; font-weight:bold;">Pass Mate Assistant</div>
+					<div id="chat-messages" style="flex:1; padding:5px; overflow-y:auto;"></div>
+					<div style="display:flex; border-top:1px solid #ccc;">
+						<input id="chat-input" type="text" placeholder="Ask me..." style="flex:1; padding:5px; border:none;">
+						<button id="send-btn" style="background:#0984e3; color:white; border:none; padding:5px 10px;">Send</button>
+					</div>
+				</div>
 			</div>
 
 			{% if user.role == "student" %}
@@ -99,19 +167,6 @@
 					{% endif %}
 				</div>
 
-				<!-- Apply for Pass -->
-				<div class="module module-card d-none" id="pass">
-					<h4>Apply for Pass</h4>
-					<p class="mb-2"><strong>Instructions for Applying for a Railway Pass:</strong></p>
-					<ul>
-						<li>Ensure you have an active concession approved before applying.</li>
-						<li>Fill in all required details accurately.</li>
-						<li>Upload a recent passport-size photograph if required.</li>
-						<li>Verify your details before submitting.</li>
-						<li>Your application will be reviewed by the authority.</li>
-					</ul>
-				</div>
-
 				<!-- Current Pass -->
 				<div class="module module-card d-none" id="current">
 					<h4>Current Pass</h4>
@@ -122,7 +177,7 @@
 					{% endif %}
 
 				</div>
-				
+
 				<!-- Concessions Taken -->
 				<div class="module module-card d-none" id="concessions">
 					<h4>No. of Concessions Taken</h4>
@@ -208,6 +263,17 @@
 </div>
 
 <script>
+	// Sidebar toggle
+	const sidebar = document.querySelector('.sidebar');
+	const mainContent = document.querySelector('.main-content');
+	const sidebarToggle = document.getElementById('sidebarToggle');
+
+	sidebarToggle.addEventListener('click', () => {
+		sidebar.classList.toggle('show');
+		mainContent.classList.toggle('shift');
+	});
+
+	// Module switching
 	const links = document.querySelectorAll('#moduleTabs .nav-link');
 	const modules = document.querySelectorAll('#moduleContent .module');
 
@@ -224,6 +290,47 @@
 				targetDiv.classList.remove('d-none');
 			}
 		});
+	});
+
+	// AI Assistant
+	const aiToggle = document.getElementById('ai-toggle');
+	const aiChat = document.getElementById('ai-chat');
+	const chatMessages = document.getElementById('chat-messages');
+	const chatInput = document.getElementById('chat-input');
+	const sendBtn = document.getElementById('send-btn');
+
+	aiToggle.addEventListener('click', () => {
+		aiChat.style.display = aiChat.style.display === 'none' ? 'flex' : 'none';
+	});
+
+	sendBtn.addEventListener('click', () => {
+		const msg = chatInput.value.trim();
+		if(!msg) return;
+
+		const userMsg = document.createElement('div');
+		userMsg.textContent = "You: " + msg;
+		userMsg.style.textAlign = "right";
+		userMsg.style.marginBottom = "3px";
+		chatMessages.appendChild(userMsg);
+		chatInput.value = "";
+
+		let reply = "";
+		if(msg.toLowerCase().includes("concession")){
+			reply = "Click on 'Concession History' or 'Apply New Concession'. Then fill The form.";
+		} else if(msg.toLowerCase().includes("pass")){
+			reply = "Your pass info is visible on the dashboard cards.";
+		} else {
+			reply = "I can help! Ask about concessions, pass details, or dashboard features.";
+		}
+
+		const botMsg = document.createElement('div');
+		botMsg.textContent = "Assistant: " + reply;
+		botMsg.style.textAlign = "left";
+		botMsg.style.fontStyle = "italic";
+		botMsg.style.marginBottom = "3px";
+		chatMessages.appendChild(botMsg);
+
+		chatMessages.scrollTop = chatMessages.scrollHeight;
 	});
 </script>
 {% endblock %}
