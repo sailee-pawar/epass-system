@@ -77,10 +77,23 @@ def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+        role = request.POST.get("role")
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            # 🔎 Check if role exists in DB
+            try:
+                db_user = User.objects.get(username=username)
+                if db_user and role.lower() != db_user.role :
+                    messages.error(request, "Your account does not have a role assigned. Contact admin.")
+                    return render(request, "accounts/login.html", {"error": "Your account does not have a role assigned. Contact admin."})
+            
+            except User.DoesNotExist:
+                # messages.error(request, "User not found.")
+                # return redirect("login")
+                return render(request, "accounts/login.html", {"error": "User not found."})
+
+            # ✅ Login the user
             login(request, user)
-            # Redirect to dashboard after successful login
             return redirect(settings.LOGIN_REDIRECT_URL)
         else:
             return render(request, "accounts/login.html", {"error": "Invalid username or password"})
