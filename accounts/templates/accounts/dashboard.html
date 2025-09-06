@@ -115,7 +115,12 @@
 				<!-- Current Pass -->
 				<div class="module module-card d-none" id="current">
 					<h4>Current Pass</h4>
-					<a href="{% url 'show_pass' %}" class="btn btn-success">View My E-Pass</a>
+					{% if active_pass_exists %}
+						<a href="{% url 'show_pass' %}" class="btn btn-success w-100">View My E-Pass</a>
+					{% else %}
+						<button class="btn btn-secondary w-100" disabled>No Active Pass Available</button>
+					{% endif %}
+
 				</div>
 				
 				<!-- Concessions Taken -->
