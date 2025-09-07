@@ -13,6 +13,8 @@ from .concession_form import ConcessionDataForm
 import json, re
 
 User = get_user_model()
+def home(request):
+    return render(request, "accounts/home.html")
 
 def signup_view(request):
     if request.method == "POST":

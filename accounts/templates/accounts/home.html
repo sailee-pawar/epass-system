@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Welcome - ePass</title>
+
+	<!-- Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<style>
+		body {
+			background: url("{% static 'images/home.jpg' %}") no-repeat center center fixed;
+			background-size: cover;
+			height: 100vh;
+			margin: 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		.welcome-card {
+			max-width: 500px;
+			width: 100%;
+			padding: 40px;
+			border-radius: 20px;
+			background: rgba(255, 255, 255, 0.9);
+			box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+			text-align: center;
+		}
+		.welcome-card h1 {
+			font-size: 2.2rem;
+			color: #0f0f10;
+			margin-bottom: 20px;
+		}
+		.welcome-card p {
+			font-size: 1.1rem;
+			color: #010b0e;
+			margin-bottom: 30px;
+		}
+	</style>
+</head>
+<body>
+	<div class="welcome-card">
+		<h1>Welcome to PassMate!!! 🎉</h1>
+		<b><p>PassMate is a digital <strong>e-pass system for students</strong>  
+            that makes it easy to apply for and manage concession passes online.  
+            Say goodbye to paperwork and long queues — travel made simple. 🚆🎓</p></bb>
+		<!-- ✅ This Next button goes to signup page -->
+		<a href="{% url 'signup' %}" class="btn btn-primary btn-lg">Next →</a>
+	</div>
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

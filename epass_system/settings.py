@@ -148,4 +148,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'serverup0710@gmail.com'
 EMAIL_HOST_PASSWORD = 'werdyhvrzjfepmch'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
 

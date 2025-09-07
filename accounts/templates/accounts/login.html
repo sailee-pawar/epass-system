@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,11 +11,13 @@
 
     <style>
         body {
-            background-color: #f8f9fa;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+           background: url("{% static 'images/login.jpg' %}") no-repeat center center fixed;
+			background-size: cover;
+			height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin: 0;
         }
         .login-card {
             max-width: 400px;
