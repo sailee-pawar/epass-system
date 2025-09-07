@@ -82,48 +82,7 @@
 		<div class="module module-card" id="home">
 			<h4>Dashboard Overview</h4>
 			<p class="text-muted">Select an option above to get started.</p>
-
-			<!-- AI Assistant Toggle Button -->
-			<button id="ai-toggle" style="
-				position: fixed;
-				bottom: 20px;
-				right: 20px;
-				background:#0984e3;
-				color:white;
-				border:none;
-				border-radius:50%;
-				width:55px;
-				height:56px;
-				font-size:31px;
-				cursor:pointer;
-				z-index: 11;
-			">💬</button>
-
-			<!-- AI Chat Box -->
-			<div id="ai-chat" style="
-				display: none;
-				position: fixed;
-				bottom: 80px;
-				right: 20px;
-				width:280px;
-				max-height:350px;
-				background:white;
-				border-radius:10px;
-				box-shadow:0 4px 15px rgba(0,0,0,0.2);
-				flex-direction: column;
-				overflow: hidden;
-				z-index: 10;
-			">
-				<div style="background:#0984e3; color:white; padding:8px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
-					Pass Mate Assistant
-					<button id="ai-close" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
-				</div>
-				<div id="chat-messages" style="flex:1; padding:5px; overflow-y:auto;"></div>
-				<div style="display:flex; border-top:1px solid #ccc;">
-					<input id="chat-input" type="text" placeholder="Ask me..." style="flex:1; padding:5px; border:none;">
-					<button id="send-btn" style="background:#0984e3; color:white; border:none; padding:5px 10px;">Send</button>
-				</div>
-			</div>
+		</div>
 
 		{% if user.role == "student" %}
 			<div class="module module-card d-none" id="concession">
@@ -239,6 +198,47 @@
 				<p>Generate and download reports here.</p>
 			</div>
 		{% endif %}
+	</div>
+
+	<!-- AI Assistant (GLOBAL, outside modules) -->
+	<button id="ai-toggle" style="
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		background:#0984e3;
+		color:white;
+		border:none;
+		border-radius:50%;
+		width:55px;
+		height:56px;
+		font-size:31px;
+		cursor:pointer;
+		z-index: 11;
+	">💬</button>
+
+	<div id="ai-chat" style="
+		display: none;
+		position: fixed;
+		bottom: 80px;
+		right: 20px;
+		width:280px;
+		max-height:350px;
+		background:white;
+		border-radius:10px;
+		box-shadow:0 4px 15px rgba(0,0,0,0.2);
+		flex-direction: column;
+		overflow: hidden;
+		z-index: 10;
+	">
+		<div style="background:#0984e3; color:white; padding:8px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+			Pass Mate Assistant
+			<button id="ai-close" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
+		</div>
+		<div id="chat-messages" style="flex:1; padding:5px; overflow-y:auto;"></div>
+		<div style="display:flex; border-top:1px solid #ccc;">
+			<input id="chat-input" type="text" placeholder="Ask me..." style="flex:1; padding:5px; border:none;">
+			<button id="send-btn" style="background:#0984e3; color:white; border:none; padding:5px 10px;">Send</button>
+		</div>
 	</div>
 </div>
 
