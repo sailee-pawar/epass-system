@@ -1,3 +1,5 @@
+from django.conf import settings
+import json, re,os
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -111,7 +113,10 @@ def dashboard_view(request):
         pending_concessions = ConcessionData.objects.filter(is_active=2)  # status=2 => Pending
     else:
         active_pass_exists = ConcessionData.objects.filter(
-            user_id=request.user.id, is_active=True
+            user_id=request.user.id, is_active=1
+        ).exists()
+        pending_exists = ConcessionData.objects.filter(
+            user_id=request.user.id, is_active=2
         ).exists()
         pending_concessions = None
 
@@ -139,6 +144,7 @@ def dashboard_view(request):
                 "active_pass_exists": active_pass_exists,
                 "concessions_taken": concessions_count,
                 "concessions_list": concessions_list,
+                "pending_exists": pending_exists,
             },
         )
 
@@ -174,6 +180,20 @@ def apply_concession(request):
             obj.user_id = request.user.id
             obj.is_active = 2
             obj.status = "Pending"
+            # ✅ Handle file uploads
+            
+            from django.conf import settings
+            upload_dir = os.path.join(settings.MEDIA_ROOT, "uploads")
+            os.makedirs(upload_dir, exist_ok=True)  # create folder if not exists
+
+            if request.FILES.get("adhar_card"):
+                adhar_file = request.FILES["adhar_card"]
+                adhar_path = os.path.join(upload_dir, f"adhar_{request.user.id}_{adhar_file.name}")
+                with open(adhar_path, "wb+") as destination:
+                    for chunk in adhar_file.chunks():
+                        destination.write(chunk)
+                obj.adhar_card_path = adhar_path  #
+
             obj.save()
 
             # ✅ Send confirmation email

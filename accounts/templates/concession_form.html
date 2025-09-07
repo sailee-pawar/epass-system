@@ -1,6 +1,6 @@
 <!-- templates/concession_form.html -->
 <div class="card mt-3 p-3 shadow-sm mx-auto" style="max-width: 600px;">
-	<form method="post" action="{% url 'apply_concession' %}">
+	<form method="post" enctype="multipart/form-data" action="{% url 'apply_concession' %}">
 		{% csrf_token %}
 
 		<div class="mb-3">
@@ -68,6 +68,8 @@
 				placeholder="Enter a valid email address"
 				required>
 			<div class="form-text">Example: student@example.com</div>
+			<!-- Error message container -->
+			<div id="emailError" class="text-danger small mt-1" style="display:none;"></div>
 		</div>
 
 		<div class="mb-3">
@@ -80,6 +82,36 @@
 			<input type="number" name="duration" id="id_duration" class="form-control" min="1" max="3" placeholder="1 to 3 months" required>
 		</div>
 
+		<!-- File Uploads -->
+		<div class="mb-3">
+			<label for="id_adhar_card" class="form-label">Upload Aadhar Card</label>
+			<input type="file" name="adhar_card" id="id_adhar_card" class="form-control" accept="image/*,.pdf" required>
+		</div>
+
 		<button type="submit" class="btn btn-primary w-100" {% if active_pass_exists %}disabled{% endif %}>Submit</button>
 	</form>
 </div>
+
+<script>
+	document.addEventListener("DOMContentLoaded", function () {
+		const emailInput = document.getElementById("id_email_id");
+		const emailError = document.getElementById("emailError");
+
+		emailInput.addEventListener("blur", function (event) {
+			const emailValue = emailInput.value.trim();
+			const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // basic email regex
+
+			if (emailValue && !emailPattern.test(emailValue)) {
+				emailError.textContent = "? Please enter a valid email address.";
+				emailError.style.display = "block";
+				emailInput.classList.add("is-invalid");
+
+				// Put cursor back inside the field
+				emailInput.focus();
+			} else {
+				emailError.style.display = "none";
+				emailInput.classList.remove("is-invalid");
+			}
+		});
+	});
+</script>

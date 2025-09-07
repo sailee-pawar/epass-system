@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -16,4 +18,4 @@ urlpatterns = [
     ### college admin ##
     path("approve-concession/<int:pk>/", views.approve_concession, name="approve_concession"),
     path("reject-concession/<int:pk>/", views.reject_concession, name="reject_concession"),
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
