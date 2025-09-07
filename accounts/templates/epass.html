@@ -109,12 +109,9 @@
         <div class="epass-body">
             <p><strong>Name:</strong> {{ epass.s_name }}</p>
             <p><strong>Age / Gender:</strong> {{ epass.age }} / {{ epass.gender }}</p>
-            <!-- <p><strong>Department:</strong> {{ epass.department }}</p> -->
             <p><strong>Source → Destination:</strong> {{ epass.destination }}</p>
-            <p><strong>Status:</strong> <span class="status approved"></span></p>
+            <p><strong>Status:</strong> {{ epass.status }} <span class="status approved"></span></p>
             <p><strong>Validation Date:</strong> {{ epass.updated_at|date:"Y-m-d" }}</p>
-            <!-- <p><strong>Phone:</strong> {{ epass.phone_no }}</p> -->
-            <p><strong>Aadhar:</strong> {{ epass.adhar_no }}</p>
             <div id="qrcode" class="qr-placeholder"></div>
         </div>
         <div class="epass-footer">

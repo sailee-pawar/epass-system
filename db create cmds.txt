@@ -8,23 +8,23 @@ GRANT ALL PRIVILEGES ON epass_db.* TO 'epassuser'@'localhost';
 FLUSH PRIVILEGES;
 
 CREATE TABLE IF NOT EXISTS `concession_data` (
-	`id` INT NOT NULL AUTO_INCREMENT,
-	`user_id` INT NOT NULL DEFAULT '0',
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`user_id` INT(11) NOT NULL DEFAULT '0',
 	`s_name` VARCHAR(250) NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
 	`b_date` DATETIME NULL DEFAULT NULL,
-	`age` INT NULL DEFAULT NULL,
+	`age` INT(11) NULL DEFAULT NULL,
 	`gender` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`department` VARCHAR(200) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`address` LONGTEXT NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`adhar_no` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`phone_no` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`destination` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
-	`duration` TINYINT NULL DEFAULT NULL,
-	`is_active` INT NULL DEFAULT NULL,
+	`duration` TINYINT(4) NULL DEFAULT NULL,
+	`is_active` INT(11) NULL DEFAULT NULL,
 	`status` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
 	`email_id` VARCHAR(150) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
-	`created_at` DATETIME NULL DEFAULT (CURRENT_TIMESTAMP),
-	`updated_at` DATETIME NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+	`created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `user_id` (`user_id`) USING BTREE
 )
@@ -32,4 +32,27 @@ COLLATE='utf8mb4_unicode_ci'
 ENGINE=InnoDB
 ;
 
+CREATE TABLE IF NOT EXISTS `verified_pass_data` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`concession_id` INT(11) NOT NULL DEFAULT '0',
+	`college_id` INT(11) NULL DEFAULT '0',
+	`user_id` INT(11) NOT NULL DEFAULT '0',
+	`s_name` VARCHAR(250) NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
+	`b_date` DATETIME NULL DEFAULT NULL,
+	`age` INT(11) NULL DEFAULT NULL,
+	`gender` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`destination` VARCHAR(250) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`duration` TINYINT(4) NULL DEFAULT NULL,
+	`is_active` INT(11) NULL DEFAULT NULL,
+	`status` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_unicode_ci',
+	`created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+	`updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`) USING BTREE,
+	INDEX `user_id` (`user_id`) USING BTREE,
+	INDEX `concession_id` (`concession_id`) USING BTREE,
+	INDEX `college_id` (`college_id`) USING BTREE
+)
+COLLATE='utf8mb4_unicode_ci'
+ENGINE=InnoDB
+;
 

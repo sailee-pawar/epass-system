@@ -10,7 +10,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from accounts.models import ConcessionData
+from accounts.models import ConcessionData, VerifiedPassData
 from .concession_form import ConcessionDataForm
 import json, re
 
@@ -108,15 +108,20 @@ def login_view(request):
 @login_required(login_url=settings.LOGIN_URL)
 def dashboard_view(request):
     # check if an active one exists
+    pending_passes = None
+    issued_passes = None
 
     if request.user.role == "admin":
-        pending_concessions = ConcessionData.objects.filter(is_active=2)  # status=2 => Pending
+        pending_concessions = ConcessionData.objects.exclude(status=1)  # status=0 => Pending
+    elif request.user.role == "transporter":
+        pending_passes = VerifiedPassData.objects.filter(status="Verified")  # or "Approved" depending on flow
+        issued_passes = VerifiedPassData.objects.filter(status="Issued")  # or "Approved" depending on flow
     else:
         active_pass_exists = ConcessionData.objects.filter(
             user_id=request.user.id, is_active=1
         ).exists()
         pending_exists = ConcessionData.objects.filter(
-            user_id=request.user.id, is_active=2
+            user_id=request.user.id, is_active=0
         ).exists()
         pending_concessions = None
 
@@ -136,6 +141,15 @@ def dashboard_view(request):
                 "pending_concessions": pending_concessions
             },
         )
+    elif request.user.role == "transporter":
+        return render(
+            request,
+            "accounts/dashboard.html",
+            {
+                "pending_passes": pending_passes,
+                "issued_passes": issued_passes
+            },
+        )
     else:
         return render(
             request,
@@ -148,7 +162,9 @@ def dashboard_view(request):
             },
         )
 
-
+def issued_passes(request):
+    issued_passes = VerifiedPassData.objects.filter(status="Verified")  # or "Approved" depending on flow
+    return render(request, "issued_passes.html", {"issued_passes": issued_passes})
 
 def logout_view(request):
     logout(request)
@@ -178,7 +194,7 @@ def apply_concession(request):
 
             obj = form.save(commit=False)
             obj.user_id = request.user.id
-            obj.is_active = 2
+            obj.is_active = 0
             obj.status = "Pending"
             # ✅ Handle file uploads
             
@@ -243,28 +259,16 @@ def getActivePass(request):
 
     User = get_user_model()
     u = User.objects.get(id=request.user.id)
-    
-
     # Fetch the user’s active pass (if exists)
-    user_pass = ConcessionData.objects.filter(user_id=request.user.id, is_active=1).first()
+    user_pass = VerifiedPassData.objects.filter(user_id=request.user.id, is_active=1, status="Issued").first()
     
-    print("Active Pass:", user_pass)          # prints <ConcessionData: sailee baliram pawar>
-    print("Name:", user_pass.s_name if user_pass else None)
-    print("Department:", user_pass.department if user_pass else None)
-
-
-    # epass = ConcessionData.objects.get(id=id)
     return render(request, "epass.html", {"epass": user_pass})
-
-    return render(request, "dashboard.html", {
-        "user_epass": user_pass
-    })
 
 
 #### concession approve/reject part ###
 @login_required
 def approve_concession(request, pk):
-    concession = get_object_or_404(ConcessionData, id=pk, is_active=2)
+    concession = get_object_or_404(ConcessionData, id=pk)
     concession.is_active = 1  # Approved
     concession.status = "Approved"
     concession.save()
@@ -281,3 +285,34 @@ def reject_concession(request, pk):
     concession.save()
     messages.error(request, "Concession rejected ❌")
     return redirect("dashboard")
+
+def verify_concession(request, id):
+    concession = get_object_or_404(ConcessionData, id=id, is_active=0, status="Pending")
+    if request.method == "POST":
+        # Example: mark concession as verified
+        VerifiedPassData.objects.create(
+            concession_id=concession.id,
+            user_id=concession.user_id,   # assuming Concession has user_id field
+            s_name=concession.s_name,
+            b_date=concession.b_date,
+            age=concession.age,
+            gender=concession.gender,
+            destination=concession.destination,
+            duration=concession.duration,
+            is_active=0,
+            status="Verified"
+        )
+        concession.status = "Verified"
+        concession.is_active = 2
+        concession.save()
+        messages.success(request, "Concession has been verified ✅")
+    return redirect('dashboard')  # Change to your actual admin page
+
+def generate_pass(request, id):
+    pass_data = VerifiedPassData.objects.get(id=id)
+    if request.method == "POST":
+        # generate logic here (e.g., mark as Issued, create PDF, etc.)
+        pass_data.status = "Issued"
+        pass_data.is_active = 1
+        pass_data.save()
+        return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))

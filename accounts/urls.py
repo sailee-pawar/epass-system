@@ -18,4 +18,8 @@ urlpatterns = [
     ### college admin ##
     path("approve-concession/<int:pk>/", views.approve_concession, name="approve_concession"),
     path("reject-concession/<int:pk>/", views.reject_concession, name="reject_concession"),
+    path('concession/<int:id>/verify/', views.verify_concession, name='verify_concession'),
+
+    ### Transporter Views ###
+    path("generate_pass/<int:id>/", views.generate_pass, name="generate_pass"),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

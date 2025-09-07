@@ -1,0 +1,57 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Centered Heading -->
+    <div class="text-center mb-3">
+        <h3>Pending Passes</h3>
+    </div>
+
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>College Name</th>
+                <th>Student Name</th>
+                <th>Status</th>
+                <th>Source → Destination</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for concession in pending_passes %}
+                <tr>
+                    <td>{{ concession.college_name }}</td>
+                    <td>{{ concession.s_name }}</td>
+                    <td>{{ concession.status }}</td>
+                    <td>{{ concession.source }} → {{ concession.destination }}</td>
+                    <td>
+                        <form method="post" action="{% url 'generate_pass' concession.id %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                    class="btn btn-primary btn-sm"
+                                    {% if concession.status == "Issued" %}
+                                        disabled data-bs-toggle="tooltip" data-bs-placement="top" title="Pass Already Generated"
+                                    {% endif %}>
+                                Generate Pass
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No Pending Passes available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+</script>
+{% endblock %}

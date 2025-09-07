@@ -33,3 +33,20 @@ class User(AbstractUser):
         ('admin', 'College Admin'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+
+class VerifiedPassData(models.Model):
+    concession_id = models.IntegerField(default=0)
+    user_id = models.IntegerField(default=0)
+    s_name = models.CharField(max_length=250, blank=True, null=True)
+    b_date = models.DateTimeField(blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    gender = models.CharField(max_length=50, blank=True, null=True)
+    destination = models.CharField(max_length=250, blank=True, null=True)
+    duration = models.SmallIntegerField(blank=True, null=True)
+    is_active = models.IntegerField(blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "verified_pass_data"

@@ -70,6 +70,7 @@
 			<div class="nav-card" data-target="verify">✅ Verify Concessions</div>
 			<div class="nav-card" data-target="manage">👥 Manage Students</div>
 		{% elif user.role == "transporter" %}
+			<div class="nav-card" data-target="pending">⏳ Pending Passes</div>
 			<div class="nav-card" data-target="issued">🎟 Issued Passes</div>
 			<div class="nav-card" data-target="reports">📑 Reports</div>
 		{% endif %}
@@ -84,9 +85,9 @@
 
 			<!-- AI Assistant Toggle Button -->
 			<button id="ai-toggle" style="
-				position: absolute;
-				top: 77px;
-				right: 10px;
+				position: fixed;
+				bottom: 20px;
+				right: 20px;
 				background:#0984e3;
 				color:white;
 				border:none;
@@ -95,16 +96,17 @@
 				height:56px;
 				font-size:31px;
 				cursor:pointer;
+				z-index: 11;
 			">💬</button>
 
 			<!-- AI Chat Box -->
 			<div id="ai-chat" style="
 				display: none;
-				position: absolute;
-				top: 50px;
-				right: 10px;
-				width:250px;
-				max-height:200px;
+				position: fixed;
+				bottom: 80px;
+				right: 20px;
+				width:280px;
+				max-height:350px;
 				background:white;
 				border-radius:10px;
 				box-shadow:0 4px 15px rgba(0,0,0,0.2);
@@ -112,14 +114,16 @@
 				overflow: hidden;
 				z-index: 10;
 			">
-				<div style="background:#0984e3; color:white; padding:8px; font-weight:bold;">Pass Mate Assistant</div>
+				<div style="background:#0984e3; color:white; padding:8px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+					Pass Mate Assistant
+					<button id="ai-close" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer;">&times;</button>
+				</div>
 				<div id="chat-messages" style="flex:1; padding:5px; overflow-y:auto;"></div>
 				<div style="display:flex; border-top:1px solid #ccc;">
 					<input id="chat-input" type="text" placeholder="Ask me..." style="flex:1; padding:5px; border:none;">
 					<button id="send-btn" style="background:#0984e3; color:white; border:none; padding:5px 10px;">Send</button>
 				</div>
 			</div>
-		</div>
 
 		{% if user.role == "student" %}
 			<div class="module module-card d-none" id="concession">
@@ -192,11 +196,27 @@
 									<td>
 										<form method="post" action="{% url 'approve_concession' concession.id %}" style="display:inline;">
 											{% csrf_token %}
-											<button type="submit" class="btn btn-success btn-sm">Approve</button>
+											{% if concession.status == "Approved" %}
+												<span data-bs-toggle="tooltip" data-bs-placement="top" title="Already Approved">
+													<button type="button" class="btn btn-success btn-sm" disabled>Approve</button>
+												</span>
+											{% else %}
+												<button type="submit" class="btn btn-success btn-sm">Approve</button>
+											{% endif %}
 										</form>
 										<form method="post" action="{% url 'reject_concession' concession.id %}" style="display:inline;">
 											{% csrf_token %}
 											<button type="submit" class="btn btn-danger btn-sm">Reject</button>
+										</form>
+										<form method="post" action="{% url 'verify_concession' concession.id %}" style="display:inline;">
+											{% csrf_token %}
+											{% if concession.status != "Pending" %}
+												<span data-bs-toggle="tooltip" data-bs-placement="top" title="Already Verified">
+													<button type="button" class="btn btn-warning btn-sm" disabled>Verify</button>
+												</span>
+											{% else %}
+												<button type="submit" class="btn btn-warning btn-sm">Verify</button>
+											{% endif %}
 										</form>
 									</td>
 								</tr>
@@ -208,9 +228,11 @@
 				{% endif %}
 			</div>
 		{% elif user.role == "transporter" %}
+			<div class="module module-card d-none" id="pending">
+				{% include "pending_passes.html" %}
+			</div>
 			<div class="module module-card d-none" id="issued">
-				<h4>Issued Passes</h4>
-				<p>Transporter can view all issued passes.</p>
+				{% include "issued_passes.html" %}
 			</div>
 			<div class="module module-card d-none" id="reports">
 				<h4>Reports</h4>
@@ -219,6 +241,9 @@
 		{% endif %}
 	</div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 
 <script>
 	// Module switching via nav cards
@@ -244,9 +269,15 @@
 	const chatMessages = document.getElementById('chat-messages');
 	const chatInput = document.getElementById('chat-input');
 	const sendBtn = document.getElementById('send-btn');
+	const aiClose = document.getElementById('ai-close');
+
 
 	aiToggle.addEventListener('click', () => {
 		aiChat.style.display = aiChat.style.display === 'none' ? 'flex' : 'none';
+	});
+
+	aiClose.addEventListener('click', () => {
+		aiChat.style.display = 'none';
 	});
 
 	sendBtn.addEventListener('click', () => {
@@ -277,6 +308,13 @@
 		chatMessages.appendChild(botMsg);
 
 		chatMessages.scrollTop = chatMessages.scrollHeight;
+	});
+
+	document.addEventListener("DOMContentLoaded", function () {
+		const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+		tooltipTriggerList.map(function (tooltipTriggerEl) {
+			return new bootstrap.Tooltip(tooltipTriggerEl);
+		});
 	});
 </script>
 {% endblock %}
