@@ -1,5 +1,6 @@
-from django.conf import settings
 import json, re,os
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -12,7 +13,7 @@ from django.urls import reverse
 
 from accounts.models import ConcessionData, VerifiedPassData
 from .concession_form import ConcessionDataForm
-import json, re
+
 
 User = get_user_model()
 def home(request):
@@ -260,6 +261,9 @@ def getActivePass(request):
     u = User.objects.get(id=request.user.id)
     # Fetch the user’s active pass (if exists)
     user_pass = VerifiedPassData.objects.filter(user_id=request.user.id, is_active=1, status="Issued").first()
+    if user_pass:
+        # Calculate valid till date
+        user_pass.valid_till = user_pass.created_at + relativedelta(months=user_pass.duration)
     
     return render(request, "epass.html", {"epass": user_pass})
 

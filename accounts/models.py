@@ -19,7 +19,7 @@ class ConcessionData(models.Model):
 	is_active = models.SmallIntegerField(blank=True, null=True)
 	status = models.CharField(max_length=50, blank=True, null=True)
 	email_id = models.CharField(max_length=150, blank=True, null=True)
-	created_at = models.DateTimeField(auto_now_add=False)
+	created_at = models.DateTimeField(auto_now_add=True)
 
 	class_type = models.CharField(
 		max_length=20,
@@ -53,7 +53,7 @@ class VerifiedPassData(models.Model):
 	is_active = models.IntegerField(blank=True, null=True)
 	status = models.CharField(max_length=50, blank=True, null=True)
 	class_type = models.CharField(max_length=50, blank=True, null=True)
-	created_at = models.DateTimeField(auto_now_add=False)
+	created_at = models.DateTimeField(auto_now_add=True)
 	college_id = models.IntegerField(default=0)
 	# updated_at = models.DateTimeField(auto_now=True)
 
