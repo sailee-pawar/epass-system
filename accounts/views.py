@@ -124,7 +124,6 @@ def dashboard_view(request):
             user_id=request.user.id, is_active=0
         ).exists()
         pending_concessions = None
-
     # Fetch total concessions taken by the logged-in user
     concessions_count = 0
     concessions_list = []
@@ -300,6 +299,7 @@ def verify_concession(request, id):
             destination=concession.destination,
             duration=concession.duration,
             is_active=0,
+            class_type=concession.class_type,
             status="Verified"
         )
         concession.status = "Verified"

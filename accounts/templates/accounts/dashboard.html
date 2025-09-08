@@ -120,7 +120,7 @@
 									<strong>Destination:</strong> {{ concession.destination }}<br>
 									<strong>Duration:</strong> {{ concession.duration }} month(s)<br>
 									<strong>Status:</strong> {{ concession.status }}<br>
-									<strong>Applied On:</strong> {{ concession.b_date }}<br>
+									<strong>Applied On:</strong> {{ concession.created_at }}<br>
 								</div>
 							</div>
 						{% endfor %}
@@ -151,7 +151,7 @@
 									<td>{{ concession.department }}</td>
 									<td>{{ concession.destination }}</td>
 									<td>{{ concession.duration }} month(s)</td>
-									<td>{{ concession.b_date }}</td>
+									<td>{{ concession.created_at }}</td>
 									<td>
 										<form method="post" action="{% url 'approve_concession' concession.id %}" style="display:inline;">
 											{% csrf_token %}
