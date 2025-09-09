@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
 ]
 
+ALLOWED_HOSTS = []
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -154,4 +155,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+SESSION_COOKIE_AGE = 60  # 10 minutes (in seconds)
+SESSION_SAVE_EVERY_REQUEST = True  # Resets timer on every request
 

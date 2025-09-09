@@ -1,4 +1,5 @@
 DROP DATABASE IF EXISTS epass_db;
+DROP USER IF EXISTS 'epassuser'@'localhost';
 
 CREATE DATABASE epass_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -6,6 +7,8 @@ CREATE USER 'epassuser'@'localhost' IDENTIFIED BY 'hC8nIj7GGMKk504i98vQ';
 
 GRANT ALL PRIVILEGES ON epass_db.* TO 'epassuser'@'localhost';
 FLUSH PRIVILEGES;
+
+epass_db
 
 CREATE TABLE IF NOT EXISTS `concession_data` (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,

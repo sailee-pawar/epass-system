@@ -13,6 +13,7 @@ from django.urls import reverse
 
 from accounts.models import ConcessionData, VerifiedPassData
 from .concession_form import ConcessionDataForm
+from django.contrib.auth.decorators import login_required
 
 
 User = get_user_model()
@@ -162,6 +163,8 @@ def dashboard_view(request):
             },
         )
 
+
+@login_required(login_url=settings.LOGIN_URL)
 def issued_passes(request):
     issued_passes = VerifiedPassData.objects.filter(status="Verified")  # or "Approved" depending on flow
     return render(request, "issued_passes.html", {"issued_passes": issued_passes})
@@ -171,6 +174,7 @@ def logout_view(request):
     return redirect(settings.LOGOUT_REDIRECT_URL)
 
 
+@login_required(login_url=settings.LOGIN_URL)
 def apply_concession(request):
     """
     View to display and handle the Concession form.
@@ -244,6 +248,7 @@ def apply_concession(request):
     }
     return render(request, "concession_form.html", context)
 
+@login_required(login_url=settings.LOGIN_URL)
 def concession_form(request):
     # Get data from DB
     # epass = get_object_or_404(ConcessionData, id=id)
@@ -251,10 +256,12 @@ def concession_form(request):
     # Pass it to template
     return render(request, 'concession_form.html')
 
+@login_required(login_url=settings.LOGIN_URL)
 def epass_view(request, id):
     epass = ConcessionData.objects.get(id=id)
     return render(request, "epass.html", {"epass": epass})
 
+@login_required(login_url=settings.LOGIN_URL)
 def getActivePass(request):
 
     User = get_user_model()
@@ -289,6 +296,7 @@ def reject_concession(request, pk):
     messages.error(request, "Concession rejected ❌")
     return redirect("dashboard")
 
+@login_required(login_url=settings.LOGIN_URL)
 def verify_concession(request, id):
     concession = get_object_or_404(ConcessionData, id=id, is_active=0, status="Pending")
     if request.method == "POST":
@@ -312,6 +320,7 @@ def verify_concession(request, id):
         messages.success(request, "Concession has been verified ✅")
     return redirect('dashboard')  # Change to your actual admin page
 
+@login_required(login_url=settings.LOGIN_URL)
 def generate_pass(request, id):
     pass_data = VerifiedPassData.objects.get(id=id)
     if request.method == "POST":
