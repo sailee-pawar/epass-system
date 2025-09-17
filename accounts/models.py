@@ -40,6 +40,7 @@ class User(AbstractUser):
 		('admin', 'College Admin'),
 	)
 	role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+	clg_id = models.IntegerField(default=0,null=True)
 
 class VerifiedPassData(models.Model):
 	concession_id = models.IntegerField(default=0)
@@ -55,7 +56,27 @@ class VerifiedPassData(models.Model):
 	class_type = models.CharField(max_length=50, blank=True, null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	college_id = models.IntegerField(default=0)
-	# updated_at = models.DateTimeField(auto_now=True)
+	updated_at = models.DateTimeField(auto_now=False)
 
 	class Meta:
 		db_table = "verified_pass_data"
+		managed = False
+	
+class CollegeMetaData(models.Model):
+	clg_id = models.AutoField(primary_key=True)
+	college_name = models.CharField(max_length=300, default="")
+	address1 = models.CharField(max_length=300, blank=True, default="")
+	address2 = models.CharField(max_length=300, blank=True, default="")
+	phone_no1 = models.CharField(max_length=12, blank=True, default="0")
+	phone_no2 = models.CharField(max_length=300, blank=True, default="")
+	default_source = models.CharField(max_length=100, blank=True, default="")
+	email_id = models.CharField(max_length=250, blank=True, null=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	# updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		db_table = "college_meta_data"
+		managed = False
+		
+	def __str__(self):
+		return self.college_name

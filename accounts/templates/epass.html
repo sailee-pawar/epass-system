@@ -109,7 +109,8 @@
         <div class="epass-body">
             <p><strong>Name:</strong> {{ epass.s_name }}</p>
             <p><strong>Age / Gender:</strong> {{ epass.age }} / {{ epass.gender }}</p>
-            <p><strong>Source to Destination:</strong> {{ epass.destination }}</p>
+            <p><strong>Source to Destination:</strong>{{epass.default_source}} - {{ epass.destination }}</p>
+            <p><strong>Class:</strong> {{epass.class_type}}</p>
             <p><strong>Status:</strong> {{ epass.status }} <span class="status approved"></span></p>
             <p><strong>Valid till :</strong> {{ epass.valid_till|date:"Y-m-d" }}</p>
             <div id="qrcode" class="qr-placeholder"></div>
@@ -160,7 +161,8 @@ document.getElementById("downloadPdfBtn").addEventListener("click", () => {
     "Name: {{ epass.s_name }}",
     "Age / Gender: {{ epass.age }} / {{ epass.gender }}",
     "Aadhar: {{ epass.adhar_no }}",
-    "Source to Destination:  {{ epass.destination }}",
+    "Source to Destination: {{epass.default_source}} - {{ epass.destination }}",
+    "Class: {{epass.class_type}}",
     "Status: Approved",
     "Validation Date: {{ epass.updated_at|date:'Y-m-d' }}",
     "Issued: {{ epass.created_at|date:'Y-m-d' }}",

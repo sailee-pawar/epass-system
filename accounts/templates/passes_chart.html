@@ -1,0 +1,46 @@
+<div class="module module-card d-flex flex-column justify-content-center align-items-center" style="height:400px;">
+  <h4 class="text-center mb-3">Pass Status Overview</h4>
+  <canvas id="passesChart" width="250" height="250" style="max-width:400px; margin:auto;"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const approved = Number('{{ approved_count|default:0 }}');
+  const pending  = Number('{{ pending_count|default:0 }}');
+  const ctx = document.getElementById('passesChart').getContext('2d');
+
+  const total = approved + pending;
+
+  if (total > 0) {
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Issued', 'Pending'],
+        datasets: [{
+          label: 'Passes',
+          data: [approved, pending],
+          backgroundColor: ['#4CAF50', '#FF9800'],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  } else {
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['No Data'],
+        datasets: [{
+          data: [1],
+          backgroundColor: ['#2196F3'],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+</script>

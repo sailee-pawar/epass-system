@@ -53,6 +53,22 @@
 	}
 </style>
 
+<!-- Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="toast align-items-center text-bg-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
 <div class="dashboard">
 	<div class="d-flex justify-content-between align-items-center mb-4" style="color:lavender; padding:10px; border-radius:8px;">
 		<h2>Welcome, {{ user.username }} to Pass-Mate 👋</h2>
@@ -61,37 +77,48 @@
 
 	<!-- Navigation Cards -->
 	<div class="nav-cards" id="moduleTabs">
-		<div class="nav-card active" data-target="home">🏠 Home</div>
+		<a href="{% url 'dashboard' %}" class="nav-card {% if active == 'home' %}active{% endif %}">🏠 Home</a>
 
 		{% if user.role == "student" %}
-			<div class="nav-card" data-target="concession">📝 Apply for Concession</div>
-			<div class="nav-card" data-target="current">🎟 Current Pass</div>
-			<div class="nav-card" data-target="concessions">📊 Concession History</div>
+			<a href="{% url 'dashboard' %}?active=concession" class="nav-card {% if active == 'concession' %}active{% endif %}">📝 Apply for Concession</a>
+			<a href="{% url 'dashboard' %}?active=current_pass" class="nav-card {% if active == 'current_pass' %}active{% endif %}">🎟 Current Pass</a>
+			<a href="{% url 'dashboard' %}?active=concession_history" class="nav-card {% if active == 'concessions' %}active{% endif %}">📊 Concession History</a>
+
 		{% elif user.role == "admin" %}
-			<div class="nav-card" data-target="verify">✅ Verify Concessions</div>
-			<div class="nav-card" data-target="manage">👥 Manage Students</div>
+			<a href="{% url 'dashboard' %}?active=verify" class="nav-card {% if active == 'verify' %}active{% endif %}">✅ Verify Concessions</a>
+			<a href="{% url 'dashboard' %}?active=manage" class="nav-card {% if active == 'manage' %}active{% endif %}">👥 Manage Students</a>
+			<a href="{% url 'dashboard' %}?active=profile" class="nav-card {% if active == 'profile' %}active{% endif %}">🏫 College Profile</a>
+
 		{% elif user.role == "transporter" %}
-			<div class="nav-card" data-target="pending">⏳ Pending Passes</div>
-			<div class="nav-card" data-target="issued">🎟 Issued Passes</div>
-			<div class="nav-card" data-target="reports">📑 Reports</div>
+			<a href="{% url 'dashboard' %}?active=pending" class="nav-card {% if active == 'pending' %}active{% endif %}">⏳ Pending Passes</a>
+			<a href="{% url 'dashboard' %}?active=issued" class="nav-card {% if active == 'issued' %}active{% endif %}">🎟 Issued Passes</a>
 		{% endif %}
 	</div>
 
 	<!-- Module Content -->
 	<div id="moduleContent">
-		<!-- Home -->
-		<div class="module module-card" id="home">
-			<h4>Dashboard Overview</h4>
-			<p class="text-muted">Select an option above to get started.</p>
-		</div>
-
 		{% if user.role == "student" %}
-			<div class="module module-card d-none" id="concession">
+			<!-- Home -->
+			<div class="module module-card {% if active != 'home' %}d-none{% endif %}" id="home">
+				<h4 class="text-center">Concession Status This Year</h4>
+				<canvas id="concessionPieChart"
+					data-pending="{{ pending_conc_count|default:0 }}"
+					data-rejected="{{ rejected_conc_count|default:0 }}"
+					data-approved="{{ approved_conc_count|default:0 }}"
+					style="max-width:400px; margin:auto;">
+				</canvas>
+			</div>
+
+			<!-- Chart.js library -->
+			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+			<!-- Your custom JS -->
+			<script src="{% static 'accounts/concession_chart.js' %}"></script>
+			</div>
+			<div class="module module-card {% if active != 'concession' %}d-none{% endif %}" id="concession">
 				<h4 class="text-center">Apply for Concession</h4>
 				{% if active_pass_exists %}
-					<div class="alert alert-warning text-center">
-						🚨 You already have an active pass.
-					</div>
+					<div class="alert alert-warning text-center">🚨 You already have an active pass.</div>
 				{% elif pending_exists %}
   					<div class="alert alert-warning">⏳ Your concession application is pending.</div>
 				{% else %}
@@ -99,7 +126,7 @@
 				{% endif %}
 			</div>
 
-			<div class="module module-card d-none" id="current">
+			<div class="module module-card {% if active != 'current_pass' %}d-none{% endif %}" id="current_pass">
 				<h4>Current Pass</h4>
 				{% if active_pass_exists %}
 					<a href="{% url 'show_pass' %}" class="btn btn-success w-100">View My E-Pass</a>
@@ -108,7 +135,7 @@
 				{% endif %}
 			</div>
 
-			<div class="module module-card d-none" id="concessions">
+			<div class="module module-card {% if active != 'concession_history' %}d-none{% endif %}" id="concession_history">
 				<h4>Concession History</h4>
 				<p>Total concessions: {{ concessions_taken }}</p>
 				{% if concessions_list %}
@@ -131,7 +158,13 @@
 				{% endif %}
 			</div>
 		{% elif user.role == "admin" %}
-			<div class="module module-card d-none" id="verify">
+			{% if active == "home" %}
+				<div class="module module-card">
+					<h4>Dashboard Overview</h4>
+					<p class="text-muted">Welcome {{ user.username }}! Choose a task above.</p>
+				</div>
+			{% elif active == "verify" %}
+				<div class="module module-card">
 				<h4>Verify Concessions</h4>
 				{% if pending_concessions %}
 					<table class="table table-striped table-bordered mt-3">
@@ -187,17 +220,69 @@
 					<div class="alert alert-info mt-3">✅ No pending concessions.</div>
 				{% endif %}
 			</div>
+			{% elif active == "manage" %}
+				<div class="module module-card">
+					<h4>Manage Students</h4>
+					<p>Here you can manage students.</p>
+				</div>
+			{% elif active == "profile" %}
+				<div class="module module-card">
+					{% include "college_profile.html" %}
+				</div>
+			{% endif %}
+
 		{% elif user.role == "transporter" %}
-			<div class="module module-card d-none" id="pending">
+
+			<!-- Top KPI Cards -->
+			 {% if active == "home" %}
+				<div class="kpi-cards" style="display:flex; gap:15px; flex-wrap:wrap; margin-bottom:20px;">
+					<div class="card kpi-card" style="flex:1; background:#FF7043; color:white; padding:15px; border-radius:8px; text-align:center; transition: transform 0.2s, box-shadow 0.2s;">
+					<h4>Total Pending</h4>
+					<p style="font-size:24px; font-weight:bold;">{{ pending_passes|length|default:0 }}</p>
+					</div>
+					<div class="card kpi-card" style="flex:1; background:#66BB6A; color:white; padding:15px; border-radius:8px; text-align:center; transition: transform 0.2s, box-shadow 0.2s;">
+					<h4>Total Issued</h4>
+					<p style="font-size:24px; font-weight:bold;">{{ issued_passes|length|default:0 }}</p>
+					</div>
+					<div class="card kpi-card" style="flex:1; background:#42A5F5; color:white; padding:15px; border-radius:8px; text-align:center; transition: transform 0.2s, box-shadow 0.2s;">
+					<h4>Approved Today</h4>
+					<p style="font-size:24px; font-weight:bold;">{{ approved_today|default:0 }}</p>
+					</div>
+					<div class="card kpi-card" style="flex:1; background:#AB47BC; color:white; padding:15px; border-radius:8px; text-align:center; transition: transform 0.2s, box-shadow 0.2s;">
+					<h4>Top College Requests</h4>
+					<p style="font-size:24px; font-weight:bold;">{{ top_college_name|default:"N/A" }}</p>
+					</div>
+				</div>
+
+				<style>
+					/* Hover effect for KPI cards */
+					.kpi-card:hover {
+					transform: translateY(-5px);
+					box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+					cursor: pointer;
+					}
+				</style>
+			{% endif %}
+
+			{% if active == "pending" %}
+				<div class="module module-card">
 				{% include "pending_passes.html" %}
 			</div>
-			<div class="module module-card d-none" id="issued">
+			{% elif active == "issued" %}
+				<div class="module module-card">
 				{% include "issued_passes.html" %}
 			</div>
-			<div class="module module-card d-none" id="reports">
-				<h4>Reports</h4>
-				<p>Generate and download reports here.</p>
-			</div>
+			
+			{% else %}
+				<div class="module module-card d-flex justify-content-center align-items-center" style="min-height: 500px;">
+    <iframe 
+        src="{% url 'passes_chart' %}" 
+        style="width:100%; max-width:500px; height:450px; border:none;">
+    </iframe>
+</div>
+
+
+			{% endif %}
 		{% endif %}
 	</div>
 
@@ -247,9 +332,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
 <script src="{% static 'accounts/session_check.js' %}"></script>
 
+{% if user.role == "student" %}
 <script>
-	// Module switching via nav cards
-	const navCards = document.querySelectorAll('#moduleTabs .nav-card');
+	document.addEventListener("DOMContentLoaded", () => {
+		const navCards = document.querySelectorAll('#moduleTabs .nav-card[data-target]');
 	const modules = document.querySelectorAll('#moduleContent .module');
 
 	navCards.forEach(card => {
@@ -264,7 +350,10 @@
 			}
 		});
 	});
-
+	});
+</script>
+{% endif %}
+<script>
 	// AI Assistant toggle
 	const aiToggle = document.getElementById('ai-toggle');
 	const aiChat = document.getElementById('ai-chat');
@@ -312,12 +401,7 @@
 		chatMessages.scrollTop = chatMessages.scrollHeight;
 	});
 
-	document.addEventListener("DOMContentLoaded", function () {
-		const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-		tooltipTriggerList.map(function (tooltipTriggerEl) {
-			return new bootstrap.Tooltip(tooltipTriggerEl);
-		});
-	});
+	
 </script>
 
 {% endblock %}

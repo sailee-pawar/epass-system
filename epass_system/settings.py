@@ -156,6 +156,8 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-SESSION_COOKIE_AGE = 60  # 10 minutes (in seconds)
+SESSION_COOKIE_AGE =120 # 10 minutes (in seconds)
 SESSION_SAVE_EVERY_REQUEST = True  # Resets timer on every request
+X_FRAME_OPTIONS = 'ALLOWALL'
+
 

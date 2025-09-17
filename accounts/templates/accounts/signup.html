@@ -47,10 +47,20 @@
 		<form method="post">
 			{% csrf_token %}
 			<div class="mb-3">
+				<label for="full_name" class="form-label">Full Name</label>
+				<input type="text" name="full_name" id="full_name" class="form-control" required
+					placeholder="Enter your full name">
+			</div>
+			<div class="mb-3">
 				<label for="username" class="form-label">Username</label>
 				<input type="text" name="username" id="username" class="form-control" required>
 			</div>
 
+			<div class="mb-3">
+				<label for="email" class="form-label">Email Address</label>
+				<input type="text" name="user_email" id="user_email" class="form-control" required>
+			</div>
+			
 			<div class="mb-3">
 				<label for="password1" class="form-label">Password</label>
 				<input type="password" name="password1" id="password1" class="form-control" required>
@@ -61,15 +71,25 @@
 				<label for="password2" class="form-label">Confirm Password</label>
 				<input type="password" name="password2" id="password2" class="form-control" required>
 			</div>
-
 			<div class="mb-3">
 				<label for="role" class="form-label">Register As</label>
 				<select name="role" id="role" class="form-select" required>
+					<option value="">-- Select Role --</option>
 					<option value="student">Student</option>
 					<option value="transporter">Transporter</option>
 					<option value="admin">College Admin</option>
 				</select>
 			</div>
+			<div class="mb-3" id="college-container" style="display:none;">
+				<label for="college" class="form-label">Select College</label>
+				<select name="college" id="college" class="form-select">
+					<option value="">-- Select College --</option>
+					{% for college in colleges %}
+						<option value="{{ college.clg_id }}">{{ college.college_name }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			
 
 			<button type="submit" class="btn btn-success w-100">Sign Up</button>
 		</form>
@@ -121,7 +141,29 @@
 			});
 
 			passwordInput.addEventListener("blur", validatePassword);
+
+			const roleSelect = document.getElementById("role");
+			const collegeContainer = document.getElementById("college-container");
+
+			function toggleCollegeDropdown() {
+				if (roleSelect.value === "student") {
+					collegeContainer.style.display = "block";
+					collegeContainer.querySelector("select").setAttribute("required", "required");
+				} else {
+					collegeContainer.style.display = "none";
+					collegeContainer.querySelector("select").removeAttribute("required");
+				}
+			}
+
+			// Initial check
+			toggleCollegeDropdown();
+
+			// On change
+			roleSelect.addEventListener("change", toggleCollegeDropdown);
 		});
+			
+		
+	
 	</script>
 </body>
 </html>

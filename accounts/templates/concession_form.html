@@ -5,7 +5,8 @@
 
 		<div class="mb-3">
 			<label for="id_s_name" class="form-label">Student Name</label>
-			<input type="text" name="s_name" id="id_s_name" class="form-control" required>
+			<input type="text" name="s_name" id="id_s_name" class="form-control" 
+				value="{{ full_name }}" disabled>
 		</div>
 
 		<div class="mb-3">
@@ -66,7 +67,11 @@
 				id="id_email_id" 
 				class="form-control" 
 				placeholder="Enter a valid email address"
-				required>
+				{% if active_user_data.email %}
+					value="{{ active_user_data.email }}" disabled
+				{% else %}
+					required
+				{% endif %}>
 			<div class="form-text">Example: student@example.com</div>
 			<!-- Error message container -->
 			<div id="emailError" class="text-danger small mt-1" style="display:none;"></div>
@@ -93,7 +98,7 @@
 		<!-- File Uploads -->
 		<div class="mb-3">
 			<label for="id_adhar_card" class="form-label">Upload Aadhar Card</label>
-			<input type="file" name="adhar_card" id="id_adhar_card" class="form-control" accept="image/*,.pdf" required>
+			<input type="file" name="adhar_card" id="id_adhar_card" class="form-control" accept="image/*,.pdf">
 		</div>
 
 		<button type="submit" class="btn btn-primary w-100" {% if active_pass_exists %}disabled{% endif %}>Submit</button>

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from accounts.models import ConcessionData, VerifiedPassData
+from accounts.models import ConcessionData, VerifiedPassData, CollegeMetaData
 from .concession_form import ConcessionDataForm
 from django.contrib.auth.decorators import login_required
 
@@ -21,12 +21,28 @@ def home(request):
     return render(request, "accounts/home.html")
 
 def signup_view(request):
+    colleges = CollegeMetaData.objects.all()  # fetch all colleges
     if request.method == "POST":
         username = request.POST.get("username")
         password1 = request.POST.get("password1")
         password2 = request.POST.get("password2")
         role = request.POST.get("role")   # 👈 new field from dropdown
+        college = request.POST.get("college")   # 👈 new field from dropdown
+        user_email = request.POST.get("user_email")   # 👈 new field from dropdown
+        full_name = request.POST.get("full_name", "").strip()
+        f_name = ""
+        l_name = ""
 
+        if full_name:
+            # Split by space, comma, or hyphen
+            parts = re.split(r"[ ,\-]+", full_name)
+
+            if len(parts) > 0:
+                f_name = parts[0]
+            if len(parts) > 1:
+                l_name = " ".join(parts[1:])
+        
+        college = college if college else None  
         # Validation
         if not username or not password1 or not password2 or not role:
             messages.error(request, "All fields are required.")
@@ -64,8 +80,12 @@ def signup_view(request):
         # Create user
         user = User.objects.create_user(
             username=username,
+            email = user_email,
             password=password1,
-            role=role   # 👈 save selected role
+            role=role,
+            clg_id=college,
+            first_name=f_name,
+            last_name=l_name,
         )
 
         # Auto-login user
@@ -74,9 +94,7 @@ def signup_view(request):
 
         return redirect("dashboard")
 
-    return render(request, "accounts/signup.html")
-
-
+    return render(request, "accounts/signup.html",{"colleges": colleges})
 
 
 def login_view(request):
@@ -108,16 +126,59 @@ def login_view(request):
 
 
 @login_required(login_url=settings.LOGIN_URL)
-def dashboard_view(request):
-    # check if an active one exists
+def dashboard_view(request, active="home"):
+    active = request.GET.get('active', 'home')
     pending_passes = None
     issued_passes = None
+    pending_concessions = None
+    active_pass_exists = False
+    pending_exists = False
+    concessions_count = 0
+    concessions_list = []
+    approved_count = 0
+    pending_count = 0
+    college = None
+    active_user_data = None
+    full_name = ""
+    pending_conc_count = None
+    rejected_conc_count = None
+    approved_conc_count = None
+
+    full_name = request.user.get_full_name()
 
     if request.user.role == "admin":
-        pending_concessions = ConcessionData.objects.exclude(status=1)  # status=0 => Pending
+        pending_concessions = ConcessionData.objects.exclude(is_active=1)
+    
+        # Check if the logged-in user has a college
+        if request.user.clg_id:  
+            college = CollegeMetaData.objects.filter(clg_id=request.user.clg_id).first()
+
     elif request.user.role == "transporter":
-        pending_passes = VerifiedPassData.objects.filter(status="Verified")  # or "Approved" depending on flow
-        issued_passes = VerifiedPassData.objects.filter(status="Issued")  # or "Approved" depending on flow
+        # ✅ Chart data (counts of passes by status)
+        approved_count = VerifiedPassData.objects.filter(status="Issued").count()
+        pending_count = VerifiedPassData.objects.filter(status__in=["Pending"]).count()
+        
+        pending_passes = VerifiedPassData.objects.filter(status="Approved")
+        for p in pending_passes:
+            user_id = p.user_id
+            user_data = User.objects.get(id=user_id)
+            college = CollegeMetaData.objects.filter(clg_id=user_data.clg_id).first()
+            if college:
+                p.college_name = college.college_name
+                p.default_source = college.default_source
+
+        issued_passes = VerifiedPassData.objects.filter(status="Issued")
+        
+        for i in issued_passes:
+            user_id = i.user_id
+            user_data = User.objects.get(id=user_id)
+            college = CollegeMetaData.objects.filter(clg_id=user_data.clg_id).first()
+            if college:
+                i.college_name = college.college_name
+                i.default_source = college.default_source
+        
+    
+    
     else:
         active_pass_exists = ConcessionData.objects.filter(
             user_id=request.user.id, is_active=1
@@ -125,46 +186,43 @@ def dashboard_view(request):
         pending_exists = ConcessionData.objects.filter(
             user_id=request.user.id, is_active=0
         ).exists()
-        pending_concessions = None
-    # Fetch total concessions taken by the logged-in user
-    concessions_count = 0
-    concessions_list = []
-    if request.user.is_authenticated:
         user_concessions = ConcessionData.objects.filter(user_id=request.user.id)
         concessions_count = user_concessions.count()
         concessions_list = user_concessions
 
-    if request.user.role == "admin":
-        return render(
-            request,
-            "accounts/dashboard.html",
-            {
-                "pending_concessions": pending_concessions
-            },
-        )
-    elif request.user.role == "transporter":
-        return render(
-            request,
-            "accounts/dashboard.html",
-            {
-                "pending_passes": pending_passes,
-                "issued_passes": issued_passes
-            },
-        )
-    else:
-        return render(
-            request,
-            "accounts/dashboard.html",
-            {
-                "active_pass_exists": active_pass_exists,
-                "concessions_taken": concessions_count,
-                "concessions_list": concessions_list,
-                "pending_exists": pending_exists,
-            },
-        )
+    if request.user.role == "student":
+        active_user_data = User.objects.filter(id=request.user.id).first()
+        # ✅ Calculate counts by status for pie chart
+        
+        user_concessions = ConcessionData.objects.filter(user_id=request.user.id)
+        pending_conc_count = user_concessions.filter(status='Pending').count()
+        rejected_conc_count = user_concessions.filter(status='Rejected').count()
+        approved_conc_count = user_concessions.filter(status='Issued').count()
+                
 
+    return render(
+        request,
+        "accounts/dashboard.html",
+        {
+            "active": active,
+            "pending_concessions": pending_concessions,
+            "pending_passes": pending_passes,
+            "issued_passes": issued_passes,
+            "active_pass_exists": active_pass_exists,
+            "pending_exists": pending_exists,
+            "concessions_taken": concessions_count,
+            "concessions_list": concessions_list,
+            "approved_count": approved_count,
+            "pending_count": pending_count,
+            "college": college,
+            "active_user_data": active_user_data,
+            "full_name": full_name,
+            "pending_conc_count": pending_conc_count,
+            "rejected_conc_count": rejected_conc_count,
+            "approved_conc_count": approved_conc_count,
+        },
+    )
 
-@login_required(login_url=settings.LOGIN_URL)
 def issued_passes(request):
     issued_passes = VerifiedPassData.objects.filter(status="Verified")  # or "Approved" depending on flow
     return render(request, "issued_passes.html", {"issued_passes": issued_passes})
@@ -198,6 +256,7 @@ def apply_concession(request):
 
             obj = form.save(commit=False)
             obj.user_id = request.user.id
+            obj.s_name = request.user.get_full_name()
             obj.is_active = 0
             obj.status = "Pending"
             # ✅ Handle file uploads
@@ -230,8 +289,8 @@ def apply_concession(request):
             )
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [obj.email_id], fail_silently=True)
 
-            messages.success(request, "Your concession application has been submitted successfully and a confirmation email has been sent.")
-            return redirect('dashboard')
+            messages.success(request, "✅ Your concession application has been submitted successfully and a confirmation email has been sent.")
+            return redirect('/dashboard/?active=concession')
         else:
             print("Form errors:", form.errors)
     else:
@@ -246,7 +305,7 @@ def apply_concession(request):
         'form': form,
         'concessions_taken': concessions_count
     }
-    return render(request, "concession_form.html", context)
+    return redirect('/dashboard/?active=concession', context)
 
 @login_required(login_url=settings.LOGIN_URL)
 def concession_form(request):
@@ -272,19 +331,28 @@ def getActivePass(request):
         # Calculate valid till date
         user_pass.valid_till = user_pass.created_at + relativedelta(months=user_pass.duration)
     
+    default_source = None
+    if u.clg_id:  # ensure user has a college assigned
+        college = CollegeMetaData.objects.filter(clg_id=u.clg_id).first()
+        if college:
+            user_pass.default_source = college.default_source
+    
     return render(request, "epass.html", {"epass": user_pass})
 
 
 #### concession approve/reject part ###
-@login_required
+@login_required(login_url=settings.LOGIN_URL)
 def approve_concession(request, pk):
     concession = get_object_or_404(ConcessionData, id=pk)
     concession.is_active = 1  # Approved
     concession.status = "Approved"
     concession.save()
     messages.success(request, "Concession approved successfully ✅")
-    return redirect("dashboard")
-    # return HttpResponseRedirect(reverse("dashboard") + "?tab=verify")
+
+    pass_data = VerifiedPassData.objects.get(concession_id=concession.id)
+    pass_data.status = "Approved"
+    # return redirect("dashboard")
+    return redirect("/dashboard/?active=verify")
 
 
 @login_required
@@ -312,20 +380,80 @@ def verify_concession(request, id):
             duration=concession.duration,
             is_active=0,
             class_type=concession.class_type,
-            status="Verified"
+            status="Verified",
+            college_id = request.user.clg_id
         )
         concession.status = "Verified"
         concession.is_active = 2
         concession.save()
         messages.success(request, "Concession has been verified ✅")
-    return redirect('dashboard')  # Change to your actual admin page
+    
+    return redirect("/dashboard/?active=verify")
+
+@login_required(login_url=settings.LOGIN_URL)
+def save_profile(request):
+    if request.method == "POST":
+        user = request.user
+
+        # Check if the user already has a college
+        if user.clg_id:  
+            college = CollegeMetaData.objects.filter(clg_id=user.clg_id).first()
+            if college:
+                # Update existing college
+                college.college_name = request.POST.get("college_name")
+                college.address1 = request.POST.get("address1")
+                college.address2 = request.POST.get("address2")
+                college.phone_no1 = request.POST.get("phone_no1")
+                college.phone_no2 = request.POST.get("phone_no2")
+                college.default_source = request.POST.get("default_source")
+                # Email is disabled in the form, so we generally don't update it
+                college.save()
+
+                messages.success(request, "✅ Profile edited successfully!")
+        else:
+            # Create new college
+            college = CollegeMetaData.objects.create(
+                college_name=request.POST.get("college_name"),
+                address1=request.POST.get("address1"),
+                address2=request.POST.get("address2"),
+                phone_no1=request.POST.get("phone_no1"),
+                phone_no2=request.POST.get("phone_no2"),
+                default_source=request.POST.get("default_source"),
+                email_id=request.POST.get("email"),  # Only for new colleges
+            )
+            # Associate the new college with the current user
+            user.clg_id = college.id
+            user.save()
+
+            messages.success(request, "✅ Profile saved successfully!")
+        return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
 
 @login_required(login_url=settings.LOGIN_URL)
 def generate_pass(request, id):
     pass_data = VerifiedPassData.objects.get(id=id)
+    concession_data = ConcessionData.objects.get(id=pass_data.concession_id)
+
     if request.method == "POST":
         # generate logic here (e.g., mark as Issued, create PDF, etc.)
         pass_data.status = "Issued"
         pass_data.is_active = 1
         pass_data.save()
+
+        concession_data.status = "Issued"
+        concession_data.save()
         return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+def passes_chart_view(request):
+    # Count passes by status
+    approved_count = VerifiedPassData.objects.filter(status="Issued").count()
+    pending_count = VerifiedPassData.objects.filter(status__in=["Verified"]).count()
+     # Zero (no status or blank)
+    zero_count = VerifiedPassData.objects.filter(is_active__in=[None]).count()
+
+    return render(request, "passes_chart.html", {
+        "approved_count": approved_count,
+        "pending_count": pending_count,
+        "zero_count": zero_count,
+    })

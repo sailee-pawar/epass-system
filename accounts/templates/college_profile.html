@@ -1,0 +1,58 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}College Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card p-4 shadow-sm" style="max-width: 500px; width: 100%;">
+        <h4 class="mb-3 text-center">College Profile</h4>
+        <form method="post" action="{% url 'save_profile' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="college_name" class="form-label">College Name</label>
+                <input type="text" name="college_name" id="college_name" class="form-control" 
+                       value="{{ college.college_name|default_if_none:'' }}" required>
+            </div>
+
+            <div class="mb-3">
+				<label for="address1" class="form-label">Address Line 1</label>
+				<textarea name="address1" id="address1" class="form-control" rows="3">{{ college.address1|default_if_none:'' }}</textarea>
+			</div>
+
+            <div class="mb-3">
+				<label for="address2" class="form-label">Address Line 2</label>
+				<textarea name="address2" id="address2" class="form-control" rows="3">{{ college.address2|default_if_none:'' }}</textarea>
+			</div>
+
+            <div class="mb-3">
+                <label for="phone_no1" class="form-label">Official Phone No 1</label>
+                <input type="text" name="phone_no1" id="phone_no1" class="form-control" maxlength="12" 
+                       value="{{ college.phone_no1|default_if_none:'' }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone_no2" class="form-label">Official Phone No 2</label>
+                <input type="text" name="phone_no2" id="phone_no2" class="form-control" maxlength="12" 
+                       value="{{ college.phone_no2|default_if_none:'' }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="default_source" class="form-label">Default Source</label>
+                <input type="text" name="default_source" id="default_source" class="form-control" 
+                       value="{{ college.default_source|default_if_none:'' }}" required>
+            </div>
+
+           <div class="mb-3">
+				<label for="email" class="form-label">Email</label>
+				<input type="email" name="email" id="email" class="form-control" 
+					value="{{ college.email_id|default_if_none:'' }}" disabled>
+			</div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                {% if college %}Edit Details{% else %}Save Profile{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
